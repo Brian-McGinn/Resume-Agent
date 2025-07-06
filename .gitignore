@@ -1,6 +1,6 @@
 cache
 __pycache__
-.env*
+server/.env
 venv/
 server/vectorstore.pkl
 
