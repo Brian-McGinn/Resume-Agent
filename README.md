@@ -30,7 +30,7 @@ A faster way to see compare your resume against your next opportunity! If you're
 
     Follow the [LangsSmith API key generation steps](https://docs.smith.langchain.com/administration/how_to_guides/organization_management/create_account_api_key)
 
-1. setup /server/.env
+1. setup /server/.env by copying or renaming /server/template.env
     ```
     NVIDIA_API_KEY=<YOUR_KEY>
     LANGSMITH_API_KEY=<YOUR_KEY>
