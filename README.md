@@ -1,7 +1,6 @@
 # AI Resume Match and curation
 
-A faster way to see compare your resume against your next opportunity! If you're like me an tired of spending hours comparing your credentials against job postings this tool is for you. All you need is a resume (the more details the better) and a job description. The AI will automatically compare your new opportunity against your credentials and give you a score! If the job matches the AI will also help your curate your resume to help you stand out more.
-
+Tired of manually comparing your resume to job postings? The Resume Agent offers a faster, smarter way to evaluate how well your credentials align with your next opportunity. Simply upload your resume (the more detailed, the better) along with your dream job description. My AI Agent will analyze and compare them, providing a compatibility score. If there's a strong match, the tool will also help you refine your resume to highlight your strengths and stand out to recruiters.
 
 ## System Architecture
 
