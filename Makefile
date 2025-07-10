@@ -4,7 +4,7 @@ build:
 	
 run:
 	docker run --name client -d -p 3000:3000 client:dev
-	docker run --name server -d -p 3003:3003 server:dev
+	docker run -v ./server:/tmp/demo --name server -d -p 3003:3003 server:dev
 
 down:
 	docker rm -f client
