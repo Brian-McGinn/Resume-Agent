@@ -29,7 +29,7 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
 
     Follow the [LangsSmith API key generation steps](https://docs.smith.langchain.com/administration/how_to_guides/organization_management/create_account_api_key)
 
-1. setup /server/.env by copying or renaming /server/template.env
+1. Create /server/.env by copying or renaming /server/template.env
     ```
     NVIDIA_API_KEY=<YOUR_KEY>
     LANGSMITH_API_KEY=<YOUR_KEY>
@@ -48,18 +48,15 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
     make run
     ```
 
-1. Stop the client and server containers
-    ```bash
-    make down
-    ```
-
 ## How To Use
 
 ### Choose Resume File
 
-1. Select 'Choose Resume File' and upload your resume PDF from your local system
+1. Select 'Choose Resume File' and upload your resume PDF from your local system 
+
 
     ![Choose Resume File](img/ui-upload.png)
+    > **_NOTE:_** Only PDF files are currently supported
 
 1. Check status message to verify success
 
@@ -92,6 +89,12 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
 1. Once complete the revised resume will display in the 'Revised Resume' textbox tab
 
     ![Revised Resume](img/ui-revise-result.png)
+
+
+## To Stop the client and server containers Run:
+    ```bash
+    make down
+    ```
 
 ## Frameworks Used
 

@@ -3,6 +3,7 @@ __pycache__
 server/.env
 venv/
 server/vectorstore.pkl
+server/uploads
 
 # dependencies
 /node_modules
