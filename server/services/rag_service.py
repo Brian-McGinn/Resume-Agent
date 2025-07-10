@@ -28,10 +28,8 @@ def setEmbeddings(file):
     """Handle message sending request."""
     try:
         document_embedder = NVIDIAEmbeddings(model=EMBEDDING_MODEL, truncate="NONE") # Can use other supported models
-        # Sample documents
         vector_store_path = "vectorstore.pkl"
-        
-        # raw_documents = DirectoryLoader(self.docs_dir).load()
+        # Load the resume file
         loader = PyPDFLoader(os.path.join("uploads", file.filename))
         documents = loader.load()
         vector_store_exists = os.path.exists(vector_store_path)
@@ -39,6 +37,7 @@ def setEmbeddings(file):
         if vector_store_exists:
             os.remove(vector_store_path)
         log_to_langsmith(f"Setting embeddings for resume.")
+        # Split the resume into chunks and save the embeddings to the local vectorstore
         if documents:
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=0)
             docs = text_splitter.split_documents(documents)
@@ -61,7 +60,6 @@ def get_context():
             vectorstore = pickle.load(f)
         # Create a retriever
         retriever = vectorstore.as_retriever()
-    # Get relevant documents using the retriever
     # Return the entire document embedding (all documents in the vectorstore)
     search_results = retriever.vectorstore.docstore._dict.values()
     # Format the context as a string

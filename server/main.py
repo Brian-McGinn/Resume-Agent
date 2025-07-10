@@ -18,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-app = FastAPI(title="AI Resume Curator API", version="1.0.0")
+app = FastAPI(title="AI Resume Agent", version="1.0.0")
 
 # Add CORS middleware
 app.add_middleware(
