@@ -50,6 +50,10 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
 
 ## How To Use
 
+### Open Resume Agent
+
+1. Go to [Resume Agent](http://127.0.0.1:3000/)
+
 ### Choose Resume File
 
 1. Select 'Choose Resume File' and upload your resume PDF from your local system 
