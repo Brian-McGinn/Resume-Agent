@@ -4,7 +4,7 @@ from typing import Generator
 from services.rag_service import log_to_langsmith
 from services.rag_service import get_context
 from langchain_core.prompts import ChatPromptTemplate
-LLM_MODEL = "google/gemma-3n-e4b-it"
+LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 
 class LLMService:
     def __init__(self):

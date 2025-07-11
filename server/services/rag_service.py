@@ -61,6 +61,8 @@ def get_context():
         # Create a retriever
         retriever = vectorstore.as_retriever()
     # Return the entire document embedding (all documents in the vectorstore)
+    # TODO: Add additional resumes to the vectorstore based on role (ex. Staff engineer, Architect, Product Manager, etc.).
+    # TODO: You will update this retriever to only get resumes relevant to the job description.
     search_results = retriever.vectorstore.docstore._dict.values()
     # Format the context as a string
     context = "\n".join([doc.page_content for doc in search_results])
