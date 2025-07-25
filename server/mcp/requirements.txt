@@ -1,0 +1,4 @@
+mcp[cli]==1.9.0
+python-jobspy
+pandas==2.3.1
+openai-agents

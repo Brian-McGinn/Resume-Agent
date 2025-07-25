@@ -2,7 +2,7 @@ cache
 __pycache__
 server/.env
 venv/
-server/vectorstore.pkl
+server/fast/vectorstore.pkl
 server/uploads
 
 # dependencies

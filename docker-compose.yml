@@ -1,0 +1,31 @@
+# Copyright © 2023 Intel Corporation. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+version: '3.7'
+
+volumes:
+  portainer_data:
+
+services:
+  client:
+    image:  client:dev
+    build: ./client
+    container_name: client
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: "on-failure:5"
+  fast-server:
+    image:  fast-server:dev
+    build: ./server/fast
+    container_name: fast-server
+    ports:
+      - "127.0.0.1:3003:3003"
+    volumes:
+      - ./server/fast:/tmp/demo
+    restart: "on-failure:5"
+  mcp-server:
+    image:  mcp-server:dev
+    build: ./server/mcp
+    container_name: mcp-server
+    ports:
+      - "127.0.0.1:3004:3004"
+    restart: "on-failure:5"
