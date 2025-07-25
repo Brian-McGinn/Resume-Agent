@@ -1,53 +1,63 @@
 # simple_agent.py
 
-from langchain_community.llms import Ollama
-from langgraph.graph import END, StateGraph
-from langgraph.prebuilt import ToolNode
-from typing import TypedDict, Annotated
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain_mcp_adapters import MultiServerMCPClient
+from langchain_ollama.chat_models import ChatOllama
+from langgraph.graph import StateGraph, START, END
+from langgraph.prebuilt import ToolNode, tools_condition
+from typing import List, Annotated
+from typing_extensions import TypedDict
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langgraph.graph.message import AnyMessage, add_messages
+from langgraph.checkpoint.memory import MemorySaver
+import asyncio
 
 client = MultiServerMCPClient(
     {
-        "my_weather_server": {
-            "url": "http://localhost:3004/sse",
+        "job_scraper": {
+            "url": "http://localhost:3004/mcp",
             "transport": "streamable_http",
         },
     }
 )
 
-tools = client.get_tools()
+async def create_graph():
+    # Create Ollama-based LLM (using llama3)
+    llm = ChatOllama(model="llama3.1")
+    tools = await client.get_tools()
+    llm_with_tool = llm.bind_tools(tools)
+    system_prompt = await client.get_prompt(server_name="job_scraper", prompt_name="system_prompt")
+    prompt_template = ChatPromptTemplate.from_messages([
+        ("system", system_prompt[0].content),
+        MessagesPlaceholder("messages")
+    ])
+    chat_llm = prompt_template | llm_with_tool
 
-# Define the state for the graph
-class AgentState(TypedDict):
-    messages: Annotated[list, HumanMessage | AIMessage]
+    # State Management
+    class State(TypedDict):
+        messages: Annotated[List[AnyMessage], add_messages]
 
-# Create Ollama-based LLM (using llama3)
-llm = Ollama(model="llama3.1")
+    # Nodes
+    def chat_node(state: State) -> State:
+        state["messages"] = chat_llm.invoke({"messages": state["messages"]})
+        return state
 
-# Define the node that calls the model
-def call_model(state: AgentState) -> AgentState:
-    messages = state["messages"]
-    response = llm.invoke(messages)
-    return {"messages": messages + [AIMessage(content=response)]}
+    # Building the graph
+    graph_builder = StateGraph(State)
+    graph_builder.add_node("chat_node", chat_node)
+    graph_builder.add_node("tool_node", ToolNode(tools=tools))
+    graph_builder.add_edge(START, "chat_node")
+    graph_builder.add_conditional_edges("chat_node", tools_condition, {"tools": "tool_node", "__end__": END})
+    graph_builder.add_edge("tool_node", "chat_node")
+    graph = graph_builder.compile(checkpointer=MemorySaver())
+    return graph
 
-# Build the LangGraph
-graph = StateGraph(AgentState)
+async def main():
+    config = {"configurable": {"thread_id": 1234}}
+    agent = await create_graph()
+    while True:
+        message = input("User: ")
+        response = await agent.ainvoke({"messages": message}, config=config)
+        print("AI: "+response["messages"][-1].content)
 
-# Add the model node
-graph.add_node("llama3", call_model)
-graph.add_node("tool_executor", ToolNode(tools))
-
-# Define the edge: after model call, we end
-graph.set_entry_point("llama3")
-graph.add_edge("llama3", END)
-
-# Compile the graph into an executable app
-app = graph.compile()
-
-# Example usage
 if __name__ == "__main__":
-    user_input = "Hello"
-    result = app.invoke({"messages": [HumanMessage(content=user_input)]})
-    response = result["messages"][-1].content
-    print(f"\nResponse:\n{response}")
+    asyncio.run(main())

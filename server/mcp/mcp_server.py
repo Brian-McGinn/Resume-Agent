@@ -18,7 +18,7 @@ class job_scraper_request(BaseModel):
     country_indeed: str = Field(default="USA", description="Country for Indeed job search")
 
 @mcp.tool()
-def job_scraper_get_jobs(request: job_scraper_request) -> str:
+def job_scraper_get_jobs(request: job_scraper_request = None) -> str:
     """
     Get a list of jobs from online job boards.
 
@@ -28,13 +28,24 @@ def job_scraper_get_jobs(request: job_scraper_request) -> str:
     Returns:
       str: list of jobs in a json format
     """
-    return job_scraper_service.job_scraper.get_jobs(
-        search_term=request.search_term,
-        location=request.location,
-        results_wanted=request.results_wanted,
-        hours_old=request.hours_old,
-        country_indeed=request.country_indeed
-    )
+    if request is None:
+        # Call get_jobs with no parameters to use all defaults
+        return job_scraper_service.get_jobs()
+    else:
+        return job_scraper_service.get_jobs(
+            search_term=request.search_term,
+            location=request.location,
+            results_wanted=request.results_wanted,
+            hours_old=request.hours_old,
+            country_indeed=request.country_indeed
+        )
+
+@mcp.prompt()
+def system_prompt() -> str:
+    """System prompt description"""
+    return """
+    You are an AI assistant use the tools if needed.
+    """
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")

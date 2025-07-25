@@ -15,5 +15,10 @@ async def main():
             for tool in response.tools:
                 print(tool)
 
+            # Call a tool
+            result = await session.call_tool("job_scraper_get_jobs")
+            print("\n/////////////////result//////////////////")
+            print(result.content[0].text)
+
 if __name__ == "__main__":
     asyncio.run(main())
