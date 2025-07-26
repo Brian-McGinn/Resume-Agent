@@ -45,6 +45,7 @@ def system_prompt() -> str:
     """System prompt description"""
     return """
     You are an AI assistant use the tools if needed.
+    You will print all results in json format.
     """
 
 if __name__ == "__main__":
