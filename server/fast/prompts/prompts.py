@@ -46,3 +46,19 @@ resume_revise_prompt = HumanMessagePromptTemplate.from_template(
     Try to improve the resume to make it more relevant to the job description.
     """
 )
+
+automate_prompt ="""
+    Using job_scraper_get_jobs tool get the top 5 software engineer jobs.
+    Return ONLY the tool output, exactly as it was returned, in the following JSON format:
+    [
+        {
+            "title": "string",
+            "company": "string",
+            "job_url": "string",
+            "description": "string",
+            "location": "string",
+            "is_remote": "string"
+        }
+    ]
+    If there are multiple jobs, return a list of such objects. Do not add any extra text or explanation.
+    """

@@ -7,9 +7,14 @@ langchain
 langchain_community
 langchain_experimental
 unstructured[all-docs]
+langgraph
+langgraph-prebuilt
+langchain_mcp_adapters
 langchain-nvidia-ai-endpoints
+langchain-ollama
 python-dotenv
 langsmith
 docling
 pgvector
 psycopg2-binary
+ollama

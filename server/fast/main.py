@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from services.llm_service import LLMService
 from services.rag_service import setEmbeddings
+from services.agent import AgentService
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
@@ -33,6 +34,7 @@ UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 llm_service = LLMService()
+agent_service = AgentService()
 
 # Pydantic models for request/response
 class MessageRequest(BaseModel):
@@ -101,6 +103,21 @@ async def revise_resume():
         )
     except Exception as e:
         logger.error(f"Error in revise_resume: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/automate")
+async def automate():
+    """
+    Begin the automated resume agent.
+    """
+    try:
+        result = await agent_service.automate()
+        if result:
+            return MessageResponse(message="Automation completed successfully")
+        else:
+            return MessageResponse(message="Automation failed")
+    except Exception as e:
+        logger.error(f"Error in automate: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/upload")
