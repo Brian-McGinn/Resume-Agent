@@ -4,8 +4,17 @@ version: '3.7'
 
 volumes:
   portainer_data:
-
+  pgdata:
 services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
   client:
     image:  client:dev
     build: ./client
@@ -29,3 +38,15 @@ services:
     ports:
       - "127.0.0.1:3004:3004"
     restart: "on-failure:5"
+  pgvector-db:
+    image: pgvector/pgvector:pg17 # Or a specific PostgreSQL version like pg16
+    container_name: pgvector-db
+    environment:
+      POSTGRES_USER: vector_admin
+      POSTGRES_PASSWORD: Resume_Pass
+      POSTGRES_DB: resume_agent
+    ports:
+      - "127.0.0.1:5432:5432" # Map host port 5432 to container port 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Persist data outside the container
+      - ./db/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql # Optional: Initialization script

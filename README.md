@@ -141,3 +141,28 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
 - **REST API**: HTTP-based API architecture
 - **Server-Sent Events (SSE)**: Real-time data streaming
 - **CORS**: Cross-Origin Resource Sharing
+
+
+
+
+# pip install stuff
+pip install pandas
+pip install python-jobspy
+pip install openai==0.28
+pip install openai-agents
+pip install langgraph langchain
+pip install from langchain_community.llms import Ollama
+pip install langchain_community
+pip install langgraph-prebuilt
+pip install sseclient
+pip install docling
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+uv install -U xformers --index-url https://download.pytorch.org/whl/cu128
+pip install --upgrade langchain pgvector psycopg2-binary
+
+docker exec -it pgvector-db /bin/bash
+psql -U vector_admin -d resume_agent
+\dx
+\d+ resume_embeddings
+\d+ langchain_pg_embedding
+SELECT * FROM langchain_pg_embedding LIMIT 5;
