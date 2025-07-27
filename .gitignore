@@ -3,7 +3,7 @@ __pycache__
 server/.env
 venv/
 server/fast/vectorstore.pkl
-server/uploads
+server/fast/uploads
 
 # dependencies
 /node_modules

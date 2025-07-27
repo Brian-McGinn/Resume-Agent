@@ -160,9 +160,14 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 uv install -U xformers --index-url https://download.pytorch.org/whl/cu128
 pip install --upgrade langchain pgvector psycopg2-binary
 
+docker compose build fast-server
+
 docker exec -it pgvector-db /bin/bash
 psql -U vector_admin -d resume_agent
 \dx
 \d+ resume_embeddings
 \d+ langchain_pg_embedding
 SELECT * FROM langchain_pg_embedding LIMIT 5;
+SELECT COUNT(*) FROM langchain_pg_embedding;
+
+DELETE FROM langchain_pg_embedding;

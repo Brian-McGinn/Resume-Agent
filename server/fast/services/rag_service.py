@@ -1,17 +1,16 @@
 from langchain_nvidia_ai_endpoints.embeddings import NVIDIAEmbeddings
-from langchain_community.llms import Ollama
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.documents import Document
 from langchain_community.vectorstores.pgvector import PGVector
-from docling.document_converter import DocumentConverter
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.document_converter import DocumentConverter, InputFormat, PdfFormatOption
 from langsmith import Client
+from sqlalchemy import create_engine, text
 import os
-import pickle
 import json
 
-from server.mcp.services.rag_service import vectorstore
-
 EMBEDDING_MODEL = "nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1"
-CONNECTION_STRING = "postgresql://vector_admin:Resume_Pass@localhost:5432/resume_agent"
+CONNECTION_STRING = "postgresql://vector_admin:Resume_Pass@pgvector-db:5432/resume_agent"
 COLLECTION_NAME = "resume_embeddings"
 document_embedder = NVIDIAEmbeddings(model=EMBEDDING_MODEL, truncate="NONE") # Can use other supported models
 
@@ -30,11 +29,35 @@ def log_to_langsmith(message):
     if langsmith_client:
         client.log_message(message)
 
+def delete_all_documents():
+    engine = create_engine(CONNECTION_STRING)
+    with engine.connect() as conn:
+        # Check if the table exists before attempting to delete
+        result = conn.execute(
+            text("SELECT to_regclass('public.langchain_pg_embedding');")
+        )
+        table_exists = result.scalar()
+        if table_exists:
+            conn.execute(
+                text("DELETE FROM langchain_pg_embedding;")
+            )
+            conn.commit()
+
 def setEmbeddings(file):
     """Handle message sending request."""
     try:
-        # Load the resume file
-        converter = DocumentConverter()
+        # Configure pipeline to disable OCR
+        pipeline_options = PdfPipelineOptions(
+            do_ocr=False  # Disable OCR entirely
+        )
+        # Create converter without OCR
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(
+                    pipeline_options=pipeline_options
+                )
+            }
+        )
         result = converter.convert(os.path.join("uploads", file.filename))
         documents = result.document.export_to_markdown()
 
@@ -49,6 +72,9 @@ def setEmbeddings(file):
                 content = "\n".join(chunk.get("chunk", []))
                 metadata = {"index": chunk.get("index", "")}
                 docs.append(Document(page_content=content, metadata=metadata))
+
+            # TODO: enhance indexing to handle multple resumes. Currently hold only one
+            delete_all_documents()
 
             vectorstore = PGVector.from_documents(
                 documents=docs,
@@ -85,12 +111,12 @@ def llmDocSplit(documents):
     \"\"\"
     """
 
-    llm = Ollama(model="llama3.1")  # or your preferred model
-
-    response = llm.invoke(llm_prompt)
+    llm = ChatNVIDIA(model="nvidia/llama-3.3-nemotron-super-49b-v1", streaming=False, max_tokens=4096)
+    response = llm.invoke(llm_prompt).content
     # Try to extract the JSON from the response
     try:
         # Find the first and last brackets to extract the JSON array
+        print(response)
         start = response.find('[')
         end = response.rfind(']')
         if start != -1 and end != -1:
@@ -112,7 +138,9 @@ def get_context():
         embedding=document_embedder
     )
 
-    all_docs = vectorstore.similarity_search(query="", k=1000)
+    all_docs = vectorstore.similarity_search(query="resume", k=100)
+
+    del vectorstore
 
     # Format the context as a string
     context = "\n".join([doc.page_content for doc in all_docs])
