@@ -4,7 +4,7 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
 
 ## System Architecture
 
-![System Architecture](img/architecture.png)
+![System Architecture](img/resume-agent.gif)
 
 ### Prerequisites
 
