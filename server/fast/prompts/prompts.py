@@ -47,6 +47,22 @@ resume_revise_prompt = HumanMessagePromptTemplate.from_template(
     """
 )
 
+generate_job_score_prompt = HumanMessagePromptTemplate.from_template(
+    """
+    IMPORTANT: Only use the context provided to compare against the job description.
+
+    Here is the candidate's resume (retrieved context):
+    {context}
+
+    And here is the job description:
+    {question}
+
+    Based on the information above, provide a single integer match score from 0 to 100 indicating how well the candidate matches the job.
+
+    IMPORTANT: ONLY return the match score as a single integer value between 0 and 100. Do not include any explanation or additional text.
+    """
+)
+
 automate_prompt ="""
     Using job_scraper_get_jobs tool get the top 5 software engineer jobs.
     Return ONLY the tool output, exactly as it was returned, in the following JSON format:

@@ -102,9 +102,6 @@ if documents:
     # Print results
     context = "\n".join([doc.page_content for doc in all_docs])
     clean_context = context.strip()
-       
-    print("!!!!!!!!!!!!!!!!!!")
-    print(clean_context)
 
     del vectorstore
     del vectorstoreget

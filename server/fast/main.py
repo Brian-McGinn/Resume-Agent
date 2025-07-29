@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from services.llm_service import LLMService
 from services.rag_service import setEmbeddings
-from services.agent import AgentService
+from services.orchestrator_agent import AgentService
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
