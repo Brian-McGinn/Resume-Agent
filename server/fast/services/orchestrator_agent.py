@@ -92,6 +92,17 @@ class AgentService:
                 state["parsed_jobs"] = parsed_results
                 return state
 
+            # Custom conditional function for parse_jobs_node
+            def parse_jobs_condition(state: State):
+                """
+                If parsed_jobs is empty, go back to tool_node, else end.
+                """
+                parsed_jobs = state.get("parsed_jobs", [])
+                if not parsed_jobs:
+                    print("No parsed jobs found, returning to tool_node.")
+                    return "tool_node"
+                return "__end__"
+
             print("Building graph...")
             # Building the graph
             graph_builder = StateGraph(State)
@@ -105,8 +116,8 @@ class AgentService:
             graph_builder.add_conditional_edges("chat_node", tools_condition, {"tools": "tool_node", "__end__": END})
             # After tool_node, go to parse_tool_output. If tool_node fails, end.
             graph_builder.add_edge("tool_node", "parse_jobs_node")
-            # After parse_tool_output, end.
-            graph_builder.add_edge("parse_jobs_node", END)
+            # After parse_tool_output, if parsed_jobs is empty, go back to tool_node, else end.
+            graph_builder.add_conditional_edges("parse_jobs_node", parse_jobs_condition, {"tool_node": "tool_node", "__end__": END})
             graph = graph_builder.compile()
             print("Graph created successfully")
             return graph
@@ -153,4 +164,3 @@ class AgentService:
         except Exception  as e:
             print(f"Error while running the automated resume agent: {e}")
             return False
-
