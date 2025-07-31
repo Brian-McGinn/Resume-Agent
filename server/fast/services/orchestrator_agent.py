@@ -1,22 +1,16 @@
-# simple_agent.py
-
-from optparse import OptionContainer
 from prompts.prompts import automate_prompt
 from services.rag_service import log_to_langsmith
-from services.rag_service import get_context
 from services.comparison_agent import ComparisonAgent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.messages import ToolMessage
-from typing import Union, final
 import json
 from langchain_ollama.chat_models import ChatOllama
 from typing import List, Annotated
 from typing_extensions import TypedDict
 from langgraph.graph.message import AnyMessage, add_messages
-from services import models
 
 client = MultiServerMCPClient(
     {
@@ -101,7 +95,26 @@ class AgentService:
                 if not parsed_jobs:
                     print("No parsed jobs found, returning to tool_node.")
                     return "tool_node"
-                return "__end__"
+                return "score_jobs_node"
+
+            # Define a new node for scoring jobs after parse_jobs_node
+            def score_jobs_node(state: State):
+                """
+                Node to score jobs using the ComparisonAgent after jobs have been parsed.
+                """
+                try:
+                    comparison_agent = ComparisonAgent()
+                    sort_by_score = comparison_agent.generate_job_scores()
+                    # Optionally, update the state with scores if needed
+                    for score in sort_by_score:
+                        print("************************",score.title, score.score)
+                    state["job_scores"] = sort_by_score
+                    return state
+                except Exception as e:
+                    print(f"Error in score_jobs_node: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    return state
 
             print("Building graph...")
             # Building the graph
@@ -110,6 +123,7 @@ class AgentService:
             graph_builder.add_node("chat_node", chat_node)
             graph_builder.add_node("tool_node", ToolNode(tools=tools))
             graph_builder.add_node("parse_jobs_node", parse_tool_json)
+            graph_builder.add_node("score_jobs_node", score_jobs_node)
             #Create graph edges
             graph_builder.add_edge(START, "chat_node")
             # If tools are needed, go to tool_node; otherwise, end.
@@ -117,7 +131,8 @@ class AgentService:
             # After tool_node, go to parse_tool_output. If tool_node fails, end.
             graph_builder.add_edge("tool_node", "parse_jobs_node")
             # After parse_tool_output, if parsed_jobs is empty, go back to tool_node, else end.
-            graph_builder.add_conditional_edges("parse_jobs_node", parse_jobs_condition, {"tool_node": "tool_node", "__end__": END})
+            graph_builder.add_conditional_edges("parse_jobs_node", parse_jobs_condition, {"tool_node": "tool_node", "score_jobs_node": "score_jobs_node"})
+            graph_builder.add_edge("score_jobs_node", END)
             graph = graph_builder.compile()
             print("Graph created successfully")
             return graph
@@ -131,36 +146,12 @@ class AgentService:
         """Handle automated agent orchestration request."""
         try:
             agent = await self.create_graph()
-            # prompt = ChatPromptTemplate.from_messages([automate_system_prompt, automate_prompt]).format_messages()
 
             print("Call resume agent")
             print("------------------------------------")           
             final_state = await agent.ainvoke({"messages": automate_prompt })
-            # Check for tool outputs in the response and print them if present
-            # Print the content of the ToolMessage from Ollama ChatOllama
             print("------------------------------------")  
             print("finished call")
-            
-            # If it's a list of strings that are actually JSON objects, parse each one
-            scores = []
-            try:
-                parsed_tool_messages = final_state.get("parsed_jobs", [])
-                content_json = json.dumps(parsed_tool_messages, indent=4)
-                print(len(content_json))
-                comparison_agent = ComparisonAgent()
-                resume = get_context()
-                for job in parsed_tool_messages:
-                    description = job.get("description","")
-                    if description != "":
-                        job_score = comparison_agent.generate_job_score(' '.join(resume.split()), ' '.join(description.split()))
-                        scores.append(models.jobs(title=job.get("title"), score=job_score))
-
-                sort_by_score = sorted(scores, key=lambda x: x.score, reverse=True)
-                for score in sort_by_score:
-                    print(score.score)
-                return True
-            except Exception  as e:
-                print(f"Error decoding tool message content: {e}")
         except Exception  as e:
             print(f"Error while running the automated resume agent: {e}")
             return False

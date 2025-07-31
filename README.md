@@ -164,6 +164,7 @@ docker compose build fast-server
 
 docker exec -it pgvector-db /bin/bash
 psql -U vector_admin -d resume_agent
+SELECT title,score FROM jobs;
 \dx
 \d+ resume_embeddings
 \d+ langchain_pg_embedding
@@ -171,3 +172,20 @@ SELECT * FROM langchain_pg_embedding LIMIT 5;
 SELECT COUNT(*) FROM langchain_pg_embedding;
 
 DELETE FROM langchain_pg_embedding;
+
+
+changes:
+✅Utilize postgres for job storage
+✅store job info in the postgres table.
+✅return job title and some info but keep the description in the DB. It's too big for the prompt and causes issues.
+✅Move job compare to graph as a node
+✅Move job compare loop to the agent logic
+✅save scores and comparison details to postgres table
+Create curation agent
+use postgres table to get job desc, score, and comparision details
+rag for resume
+send resume, job desc, comparision details to llm to generate new resume
+create feedback loop to do initial compare, review and fix errors, review tone to match job description, format for ats, cross validate with original resume to avoid hallucinations.
+save new resume to table, save raw markdown format and pdf format
+orchestrator can extract new resume markdown and pdf to put on UI
+UI will list job title, score, link, markdown download, and pdf download

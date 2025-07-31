@@ -70,10 +70,7 @@ automate_prompt ="""
         {
             "title": "string",
             "company": "string",
-            "job_url": "string",
-            "description": "string",
-            "location": "string",
-            "is_remote": "string"
+            "job_url": "string"
         }
     ]
     If there are multiple jobs, return a list of such objects. Do not add any extra text or explanation.
