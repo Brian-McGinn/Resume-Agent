@@ -59,7 +59,13 @@ generate_job_score_prompt = HumanMessagePromptTemplate.from_template(
 
     Based on the information above, provide a single integer match score from 0 to 100 indicating how well the candidate matches the job.
 
-    IMPORTANT: ONLY return the match score as a single integer value between 0 and 100. Do not include any explanation or additional text.
+    Return your answer as a JSON object in the following format:
+    {{
+        "score": <integer between 0 and 100>,
+        "content": "<A concise explanation of the score, including job comparisons, suggestions, and recommendations.>"
+    }}
+
+    Replace <integer between 0 and 100> with the actual score, and <...> with your generated content. Do not include any extra text outside the JSON object.
     """
 )
 

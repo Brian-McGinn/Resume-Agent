@@ -8,8 +8,8 @@ class jobs:
         self.is_remote = is_remote
         self.score = score
 
-class job_scores:
-    def __init__(self, score: int = 0, recommendations: str = "", gaps: str = ""):
+class job_comparisons:
+    def __init__(self, job_url: str = "", score: int = 0, content: str = ""):
+        self.job_url = job_url
         self.score = score
-        self.recommendations = recommendations
-        self.gaps = gaps
+        self.content = content

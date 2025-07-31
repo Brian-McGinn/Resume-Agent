@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from services import models
 from services.rag_service import get_context
 import psycopg2
+import json
 
 LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 
@@ -13,6 +14,7 @@ class ComparisonAgent:
     # Send the job description to the LLM and load the previously uploaded resume from the vectorstore into the context
     def generate_job_scores(self):
         scores = []
+        recommendations = []
         jobs = get_all_jobs_from_postgres()
         resume = get_context()
         for job in jobs:
@@ -20,19 +22,32 @@ class ComparisonAgent:
             if description != "":
                 max_attempts = 5
                 attempt = 0
-                int_score = None
                 while attempt < max_attempts:
                     job_score = self.job_score(' '.join(resume.split()), description)
                     try:
-                        int_score = int(job_score.replace(" ", ""))
+                        # Parse the job_score as JSON
+                        print(job_score)
+                        job_score_json = json.loads(job_score)
+                        score_val = job_score_json.get("score", 0)
+                        content_val = job_score_json.get("content", "")
+                        print(f"Job: {job.get('title')}")
+                        print(f"Score: {score_val}")
+                        print(f"Explanation: {content_val}")
+                        scores.append(models.jobs(title=job.get("title"), job_url=job.get("job_url"), score=score_val))
+                        # Append a new job_comparisons entry using models.job_comparisons and job_score/job fields
+                        recommendations.append(
+                            models.job_comparisons(
+                                job_url=job.get("job_url"),
+                                score=score_val,
+                                content=content_val
+                            )
+                        )
                         break
-                    except ValueError:
+                    except (ValueError, json.JSONDecodeError, TypeError) as e:
+                        print(f"Failed to parse job_score or convert score to int: {e}")
                         attempt += 1
-                        if attempt == max_attempts:
-                            int_score = 0
-                scores.append(models.jobs(title=job.get("title"), job_url=job.get("job_url"), score=int_score))
         sort_by_score = sorted(scores, key=lambda x: x.score, reverse=True)
-        update_job_score_in_postgres(sort_by_score)
+        update_job_score_in_postgres(recommendations)
         return sort_by_score
 
     def job_score(self, resume, description):   
@@ -46,7 +61,7 @@ class ComparisonAgent:
             llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434")
             response = llm.invoke(prompt)
 
-            return ' '.join(response.content)
+            return response.content
 
         except Exception as e:
             print(f"Failed to call the llm {str(e)}")
@@ -101,7 +116,7 @@ def get_all_jobs_from_postgres():
         if conn:
             conn.close()
 
-def update_job_score_in_postgres(jobs_with_scores: models.jobs):
+def update_job_score_in_postgres(jobs_with_scores: models.job_comparisons):
     """
     Update the score field in the jobs table for each job using job_url as the unique identifier.
 
@@ -115,10 +130,11 @@ def update_job_score_in_postgres(jobs_with_scores: models.jobs):
         for job in jobs_with_scores:
             job_url = job.job_url
             score = job.score
+            content = ' '.join(job.content.split())
             if job_url is not None and score is not None:
                 cur.execute(
-                    "UPDATE jobs SET score = %s WHERE job_url = %s;",
-                    (score, job_url)
+                    "UPDATE jobs SET score = %s, recommendations = %s WHERE job_url = %s;",
+                    (score, content, job_url)
                 )
         conn.commit()
     except Exception as e:

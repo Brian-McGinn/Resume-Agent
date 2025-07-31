@@ -10,6 +10,5 @@ CREATE TABLE IF NOT EXISTS jobs (
     is_remote BOOLEAN DEFAULT FALSE,
     score INTEGER DEFAULT 0,
     recommendations TEXT,
-    gaps TEXT,
     curated BOOLEAN DEFAULT FALSE
 );
