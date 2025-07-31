@@ -165,6 +165,7 @@ docker compose build fast-server
 docker exec -it pgvector-db /bin/bash
 psql -U vector_admin -d resume_agent
 SELECT title,score,recommendations FROM jobs;
+SELECT title,curated_resume FROM jobs;
 \dx
 \d+ resume_embeddings
 \d+ langchain_pg_embedding

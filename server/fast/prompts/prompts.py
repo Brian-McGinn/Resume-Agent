@@ -26,10 +26,8 @@ resume_review_prompt = HumanMessagePromptTemplate.from_template(
 )
 
 resume_revise_prompt = HumanMessagePromptTemplate.from_template(
-    """            
-    Modify my resume for the job description. Examine the job description carefully and identify keywords and skills that the employer emphasizes. Adjust my resume to highlight my qualifications that match these requirements. This customization shows employers my candidacy aligns well with the job expectations.
-    Proofread my tailored resume for any errors in spelling, grammar, or formatting. Pay special attention to consistency in style and detail. Consider asking a friend or using professional services to review my resume. This ensures it is polished and professional.
-    Format the new resume to be automated tracking system friendly.
+    """
+    Modify my resume for the job description. Carefully review the job description and identify the most important keywords and skills. Update my resume to highlight my qualifications that best match these requirements. Make sure the resume is formatted to be friendly for automated tracking systems (ATS).
 
     Here is the candidate's resume:
     {resume}
@@ -40,10 +38,9 @@ resume_revise_prompt = HumanMessagePromptTemplate.from_template(
     Here is the job description:
     {job_description}
 
-    Use the assistant's feedback to improve the resume.
-    You can add more information to the resume if needed.
-    You can also remove information if it is not relevant to the job description.
-    Try to improve the resume to make it more relevant to the job description.
+    Use the assistant's feedback and your expertise to improve the resume. You may add or remove information as needed to make the resume more relevant to the job description.
+
+    IMPORTANT: Only return the updated resume in markdown format. Do not include any extra explanation, commentary, or formatting outside of the markdown resume itself.
     """
 )
 
