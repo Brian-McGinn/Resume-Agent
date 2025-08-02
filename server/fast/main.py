@@ -106,12 +106,30 @@ async def revise_resume():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/automate")
-async def automate():
+async def automate(
+    search_term: str = "software engineer",
+    location: str = "Phoenix, AZ",
+    results_wanted: int = 10,
+    hours_old: int = 24,
+    country_indeed: str = "USA"
+):
     """
     Begin the automated resume agent.
+    Accepts query parameters:
+    - search_term
+    - location
+    - results_wanted
+    - hours_old
+    - country_indeed
     """
     try:
-        result = await agent_service.automate()
+        result = await agent_service.automate(
+            search_term=search_term,
+            location=location,
+            results_wanted=results_wanted,
+            hours_old=hours_old,
+            country_indeed=country_indeed
+        )
         if result:
             return MessageResponse(message="Automation completed successfully")
         else:

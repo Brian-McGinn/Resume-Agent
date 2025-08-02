@@ -66,18 +66,25 @@ generate_job_score_prompt = HumanMessagePromptTemplate.from_template(
     """
 )
 
-automate_prompt ="""
-    Using job_scraper_get_jobs tool get the top 5 software engineer jobs.
+automate_prompt = HumanMessagePromptTemplate.from_template(
+    """
+    Use the job_scraper_get_jobs MCP tool to get jobs by filling the job_scraper_request with the following parameters:
+    - search_term: {search_term}
+    - location: {location}
+    - results_wanted: {results_wanted}
+    - hours_old: {hours_old}
+    - country_indeed: {country_indeed}
     Return ONLY the tool output, exactly as it was returned, in the following JSON format:
     [
-        {
+        {{
             "title": "string",
             "company": "string",
             "job_url": "string"
-        }
+        {{
     ]
     If there are multiple jobs, return a list of such objects. Do not add any extra text or explanation.
     """
+)
 
 curate_resume_step_1_compare = HumanMessagePromptTemplate.from_template(
     """

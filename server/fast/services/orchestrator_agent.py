@@ -9,7 +9,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.messages import ToolMessage
 import json
 from langchain_ollama.chat_models import ChatOllama
-from typing import List, Annotated
+from typing import List, Annotated, final
 from typing_extensions import TypedDict
 from langgraph.graph.message import AnyMessage, add_messages
 
@@ -161,16 +161,21 @@ class AgentService:
             traceback.print_exc()
             raise
 
-    async def automate(self):
+    async def automate(self, search_term: str = "software engineer", location: str = "Phoenix, AZ", results_wanted: int = 10, hours_old: int = 24, country_indeed: str = "USA"):
         """Handle automated agent orchestration request."""
         try:
             agent = await self.create_graph()
 
             print("Call resume agent")
             print("------------------------------------")           
-            final_state = await agent.ainvoke({"messages": automate_prompt })
+            final_state = await agent.ainvoke({"messages": [automate_prompt.format(search_term=search_term, 
+                                                                                    location=location, 
+                                                                                    results_wanted=results_wanted, 
+                                                                                    hours_old=hours_old, 
+                                                                                    country_indeed=country_indeed)]})
             print("------------------------------------")  
             print("finished call")
+            print(final_state)
         except Exception  as e:
             print(f"Error while running the automated resume agent: {e}")
             return False

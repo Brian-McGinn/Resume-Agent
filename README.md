@@ -166,7 +166,7 @@ docker exec -it pgvector-db /bin/bash
 psql -U vector_admin -d resume_agent
 SELECT title,score,curated FROM jobs;
 SELECT title,score,recommendations FROM jobs;
-SELECT title,curated_resume FROM jobs;
+SELECT title,curated_resume FROM jobs LIMIT 1;
 \dx
 \d+ resume_embeddings
 \d+ langchain_pg_embedding
