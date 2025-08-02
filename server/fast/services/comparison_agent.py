@@ -6,7 +6,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from services import models
 from services.rag_service import get_context
 from services.database_service import get_all_jobs, update_job_score
-import psycopg2
 import json
 
 LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"

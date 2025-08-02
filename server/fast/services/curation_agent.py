@@ -12,12 +12,12 @@ from prompts.prompts import (
     curate_resume_step_1_compare,
     curate_resume_step_2_highlight,
     curate_resume_step_3_proofread,
-    curate_resume_step_4_verify_against_original,
+    curate_resume_step_4_cross_check_original,
     curate_resume_step_5_format,
 )
 
 class CurationAgent:
-    def create_graph(self):
+    def create_graph(self, min_job_score: int = 60):
         try:
             print("Creating Ollama LLM...")
             # Create Ollama-based LLM (using llama3)
@@ -29,11 +29,13 @@ class CurationAgent:
                 jobs: list[models.job]
 
             def get_resume(state: State) -> State:
+                print("Get latest resume from vector store.")
                 state['resume'] = get_context()
                 return state
 
             def get_job_data(state: State) -> State:
-                state["jobs"] = get_job_description()
+                print("Get list of non curated jobs.")
+                state["jobs"] = get_job_description(min_job_score)
                 return state
             
             def curate(state: State) -> State:
@@ -41,16 +43,13 @@ class CurationAgent:
                 if jobs and len(jobs) > 0:
                     curated_resumes = []
                     for job in jobs:
-                        if job and job.recommendations and job.score > 80 and not job.curated:
-                            response = curate_resume_llm(llm, state["resume"], job.description)
-                            job.curated_resume = response.content
-                            update_job_curated_resume(job)
-                            curated_resumes.append({
-                                "job_url": job.job_url,
-                                "curated_resume": job.curated_resume
-                            })
-                        else:
-                            print(f"No recommendations found for job: {getattr(job, 'title', 'Unknown')}")
+                        response = curate_resume_llm(llm, state["resume"], job.description, job.recommendations)
+                        job.curated_resume = response.content
+                        update_job_curated_resume(job)
+                        curated_resumes.append({
+                            "job_url": job.job_url,
+                            "curated_resume": job.curated_resume
+                        })
                     state["curated_resumes"] = curated_resumes
                 else:
                     print("No jobs found for curation")
@@ -96,23 +95,23 @@ class CurationAgent:
             print(f"Error while running the curation resume agent: {e}")
             return False
 
-def curate_resume_llm(llm: ChatOllama, resume: str, job_description: str):
+def curate_resume_llm(llm: ChatOllama, resume: str, job_description: str, recommendations: str):
     # Chain with system_prompt at the start
     curation_chain_pipe = (
         ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_1_compare]) 
         | llm 
-        | RunnableLambda(lambda output1: {"resume": resume, "job_description": job_description}) 
+        | RunnableLambda(lambda output1: {"resume": resume, "job_description": job_description, "curated_resume": output1.content}) 
         | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_2_highlight]) 
         | llm 
         | RunnableLambda(lambda output2: {"curated_resume": output2.content}) 
         | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_3_proofread]) 
         | llm 
         | RunnableLambda(lambda output3: {"curated_resume": output3.content, "resume": resume}) 
-        | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_4_verify_against_original]) 
+        | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_4_cross_check_original]) 
         | llm 
         | RunnableLambda(lambda output4: {}) 
         | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_5_format]) 
         | llm
     )
 
-    return curation_chain_pipe.invoke({"resume": resume, "job_description": job_description})
+    return curation_chain_pipe.invoke({"resume": resume, "job_description": job_description, "recommendations": recommendations})

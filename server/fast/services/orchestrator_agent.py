@@ -9,7 +9,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.messages import ToolMessage
 import json
 from langchain_ollama.chat_models import ChatOllama
-from typing import List, Annotated, final
+from typing import List, Annotated
 from typing_extensions import TypedDict
 from langgraph.graph.message import AnyMessage, add_messages
 
@@ -176,6 +176,7 @@ class AgentService:
             print("------------------------------------")  
             print("finished call")
             print(final_state)
+            return True
         except Exception  as e:
             print(f"Error while running the automated resume agent: {e}")
             return False

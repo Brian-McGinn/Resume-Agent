@@ -81,7 +81,7 @@ def update_job_score(jobs_with_scores: models.job_comparisons):
         if conn:
             conn.close()
 
-def get_job_description() -> list[models.job]:
+def get_job_description(min_job_score: int = 60) -> list[models.job]:
     """
     Retrieve job records from the PostgreSQL jobs table that are not curated and return as a JSON array.
 
@@ -92,7 +92,7 @@ def get_job_description() -> list[models.job]:
     try:
         conn = get_postgres_connection()
         cur = conn.cursor()
-        cur.execute("SELECT title, job_url, description, recommendations, curated FROM jobs WHERE curated = FALSE;")
+        cur.execute("SELECT title, job_url, score, description, recommendations, curated FROM jobs WHERE curated = FALSE AND score > %s;", (min_job_score,))
         rows = cur.fetchall()
         jobs = []
         for row in rows:
@@ -100,9 +100,10 @@ def get_job_description() -> list[models.job]:
                 models.job(
                     title=row[0],
                     job_url=row[1],
-                    description=row[2],
-                    recommendations=row[3],
-                    curated=row[4]
+                    score=row[2],
+                    description=row[3],
+                    recommendations=row[4],
+                    curated=row[5]
                 )
             )
         return jobs

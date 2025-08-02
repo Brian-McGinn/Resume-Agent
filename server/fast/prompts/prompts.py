@@ -88,8 +88,11 @@ automate_prompt = HumanMessagePromptTemplate.from_template(
 
 curate_resume_step_1_compare = HumanMessagePromptTemplate.from_template(
     """
-    Compare {resume} to {job_description} and provide the match score from  1 (poor fit) to 100 (excellent fit).
-    Provide information about gaps and recommendations for improvement.
+    Compare {resume} to {job_description} to provide information about gaps and recommendations for improvement.
+    Combine {recommendations} with the new gaps and recommendations to refine the improvements needed for the resume.
+    IMPORTANT: do not modify content from {resume}.
+    Create a new resume using bullet points from {resume}.
+    ONLY return the final resume.
     """
 )
 
@@ -101,7 +104,7 @@ curate_resume_step_2_highlight = HumanMessagePromptTemplate.from_template(
     Only include bullet points and skills that are relevant to {job_description}.
     Adjust my resume to bold my qualifications that match the {job_description} requirements.
     This customization shows employers my candidacy aligns well with the job expectations.
-    Save the tailored resume in $custom_resume.
+    Store the final version of my resume in {curated_resume}.
     """
 )
 
@@ -115,7 +118,7 @@ curate_resume_step_3_proofread = HumanMessagePromptTemplate.from_template(
     """
 )
 
-curate_resume_step_4_verify_against_original = HumanMessagePromptTemplate.from_template(
+curate_resume_step_4_cross_check_original = HumanMessagePromptTemplate.from_template(
     """
     Compare bullet points from {resume} and {curated_resume}.
     Only modify mismatch bullet points.

@@ -4,7 +4,9 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
 
 ## System Architecture
 
-![System Architecture](img/resume-agent.gif)
+![System Architecture](docs/img/resume-agent.gif)
+
+[Orchestration Agent](docs/resume-agent.md)
 
 ### Prerequisites
 
@@ -49,53 +51,6 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
     ```bash
     make run
     ```
-
-## How To Use
-
-### Open Resume Agent
-
-1. Go to [Resume Agent](http://127.0.0.1:3000/)
-
-### Choose Resume File
-
-1. Select 'Choose Resume File' and upload your resume PDF from your local system 
-
-
-    ![Choose Resume File](img/ui-upload.png)
-    > **_NOTE:_** Only PDF files are currently supported
-
-1. Check status message to verify success
-
-    ![Upload success](img/ui-upload-success.png)
-
-1. Here is an example of a failed upload
-
-    ![Upload Failed](img/ui-upload-failed.png)
-
-### Compare to Resume
-
-1. Copy job description text into the textbox
-
-    ![Copy Job Description](img/ui-compare-1.png)
-
-1. Select the 'Compare To Resume' button to start the comparison
-
-    ![Compare To Resume](img/ui-compare-2.png)
-
-1. Results will be displayed in the 'Compare Result' textbox tab
-
-    ![Resume Results](img/ui-compare-result.png)
-
-### Revise Resume
-
-1. After comparison is finished you may select 'Revise Resume' to begin generating a new resume curated for the job description
-
-    ![Revise Resume](img/ui-revise-1.png)
-
-1. Once complete the revised resume will display in the 'Revised Resume' textbox tab
-
-    ![Revised Resume](img/ui-revise-result.png)
-
 
 ## To Stop the client and server containers Run:
     ```bash
@@ -174,7 +129,7 @@ SELECT * FROM langchain_pg_embedding LIMIT 5;
 SELECT COUNT(*) FROM langchain_pg_embedding;
 
 DELETE FROM langchain_pg_embedding;
-
+DELETE FROM jobs;
 
 changes:
 ✅Utilize postgres for job storage
@@ -189,6 +144,7 @@ changes:
 ✅ssend resume, job desc, comparision details to llm to generate new resume
 ✅create feedback loop to do initial compare, review and fix errors, review tone to match job description, format for ats, cross validate with original resume to avoid hallucinations.
 ✅save new resume to table, save raw markdown format a
+✅Add fully automated resume agent UI page
 save in pdf format
 orchestrator can extract new resume markdown and pdf to put on UI
 UI will list job title, score, link, markdown download, and pdf download
