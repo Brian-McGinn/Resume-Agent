@@ -131,7 +131,7 @@ def update_job_curated_resume(updated_job: models.job):
         
         if job_url is not None and curated_resume is not None:
             cur.execute(
-                "UPDATE jobs SET curated_resume = %s WHERE job_url = %s;",
+                "UPDATE jobs SET curated_resume = %s, curated = TRUE WHERE job_url = %s;",
                 (curated_resume, job_url)
             )
         conn.commit()

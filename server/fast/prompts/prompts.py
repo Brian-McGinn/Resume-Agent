@@ -78,3 +78,48 @@ automate_prompt ="""
     ]
     If there are multiple jobs, return a list of such objects. Do not add any extra text or explanation.
     """
+
+curate_resume_step_1_compare = HumanMessagePromptTemplate.from_template(
+    """
+    Compare {resume} to {job_description} and provide the match score from  1 (poor fit) to 100 (excellent fit).
+    Provide information about gaps and recommendations for improvement.
+    """
+)
+
+curate_resume_step_2_highlight = HumanMessagePromptTemplate.from_template(
+    """
+    IMPORTANT: do not modify content from {resume}.
+    Create a new resume using bullet points from {resume}.
+    Examine the job description carefully and identify keywords and skills that the employer emphasizes to select the appropriate bullet points.
+    Only include bullet points and skills that are relevant to {job_description}.
+    Adjust my resume to bold my qualifications that match the {job_description} requirements.
+    This customization shows employers my candidacy aligns well with the job expectations.
+    Save the tailored resume in $custom_resume.
+    """
+)
+
+curate_resume_step_3_proofread = HumanMessagePromptTemplate.from_template(
+    """
+    Proofread my tailored resume for any errors in spelling, grammar, or formatting.
+    Pay special attention to consistency in style and detail.
+    Consider asking a friend or using professional services to review my resume.
+    This ensures it is polished and professional.
+    Store the final version of my resume in {curated_resume}.
+    """
+)
+
+curate_resume_step_4_verify_against_original = HumanMessagePromptTemplate.from_template(
+    """
+    Compare bullet points from {resume} and {curated_resume}.
+    Only modify mismatch bullet points.
+    DO NOT include missing bullet points.
+    bullet points  Make sure {curated_resume} bullet points align with {resume} bullet points.
+    If bullet points do not match {resume} rewrite the bullet point to match {resume} bullet point.
+    """
+)
+
+curate_resume_step_5_format = HumanMessagePromptTemplate.from_template(
+    """
+    Format for Applicant Tracking Systems and print as text.
+    """
+)

@@ -164,6 +164,7 @@ docker compose build fast-server
 
 docker exec -it pgvector-db /bin/bash
 psql -U vector_admin -d resume_agent
+SELECT title,score,curated FROM jobs;
 SELECT title,score,recommendations FROM jobs;
 SELECT title,curated_resume FROM jobs;
 \dx
@@ -182,11 +183,12 @@ changes:
 ✅Move job compare to graph as a node
 ✅Move job compare loop to the agent logic
 ✅save scores and comparison details to postgres table
-Create curation agent
-use postgres table to get job desc, score, and comparision details
-rag for resume
-send resume, job desc, comparision details to llm to generate new resume
-create feedback loop to do initial compare, review and fix errors, review tone to match job description, format for ats, cross validate with original resume to avoid hallucinations.
-save new resume to table, save raw markdown format and pdf format
+✅sCreate curation agent
+✅suse postgres table to get job desc, score, and comparision details
+✅srag for resume
+✅ssend resume, job desc, comparision details to llm to generate new resume
+✅create feedback loop to do initial compare, review and fix errors, review tone to match job description, format for ats, cross validate with original resume to avoid hallucinations.
+✅save new resume to table, save raw markdown format a
+save in pdf format
 orchestrator can extract new resume markdown and pdf to put on UI
 UI will list job title, score, link, markdown download, and pdf download

@@ -1,6 +1,7 @@
 from prompts.prompts import automate_prompt
 from services.rag_service import log_to_langsmith
 from services.comparison_agent import ComparisonAgent
+from services.curation_agent import CurationAgent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -115,6 +116,22 @@ class AgentService:
                     import traceback
                     traceback.print_exc()
                     return state
+                
+            def curate_resume_node(state: State):
+                """
+                Node to curate the resume using the CurationAgent.
+                """
+                try:
+                    print("curate Agent")
+                    curation_agent = CurationAgent()
+                    curated_resume = curation_agent.curate_resume()
+                    state["curated_resume"] = curated_resume
+                    return state
+                except Exception as e:
+                    print(f"Error in curate_resume_node: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    return state
 
             print("Building graph...")
             # Building the graph
@@ -124,6 +141,7 @@ class AgentService:
             graph_builder.add_node("tool_node", ToolNode(tools=tools))
             graph_builder.add_node("parse_jobs_node", parse_tool_json)
             graph_builder.add_node("score_jobs_node", score_jobs_node)
+            graph_builder.add_node("curate_resume_node", curate_resume_node)
             #Create graph edges
             graph_builder.add_edge(START, "chat_node")
             # If tools are needed, go to tool_node; otherwise, end.
@@ -132,7 +150,8 @@ class AgentService:
             graph_builder.add_edge("tool_node", "parse_jobs_node")
             # After parse_tool_output, if parsed_jobs is empty, go back to tool_node, else end.
             graph_builder.add_conditional_edges("parse_jobs_node", parse_jobs_condition, {"tool_node": "tool_node", "score_jobs_node": "score_jobs_node"})
-            graph_builder.add_edge("score_jobs_node", END)
+            graph_builder.add_edge("score_jobs_node", "curate_resume_node")
+            graph_builder.add_edge("curate_resume_node", END)
             graph = graph_builder.compile()
             print("Graph created successfully")
             return graph
