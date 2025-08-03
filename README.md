@@ -57,94 +57,57 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
     make down
     ```
 
-## Frameworks Used
+## Frameworks & Tools Used
 
-### Models Used
-- **google/gemma-3n-e4b-it**: Primary model for comparing job description with the resume and providing the revised resume.
-- **nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1**: Retreival model for resume vector embeddings
+### Models & Embeddings
+- **google/gemma-3n-e4b-it**: Primary LLM for job-resume comparison and resume revision.
+- **nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1**: Embedding model for resume vectorization and retrieval.
+- **Ollama**: Local LLM serving and inference.
+- **OpenAI GPT**: (Optional) For additional LLM tasks.
 
-### Frontend Frameworks
-- **React**: JavaScript library for building user interfaces
-- **Next.js**: React framework for production applications
-- **TypeScript**: Typed superset of JavaScript
+### Frontend Frameworks & Libraries
+- **React**: UI library for building interactive interfaces.
+- **Next.js**: React framework for SSR and production builds.
+- **TypeScript**: Strongly-typed JavaScript for safer code.
+- **Tailwind CSS**: Utility-first CSS framework for styling.
+- **React Tabs**: Tab component library for React.
 
-### Backend Frameworks
-- **Flask**: Python web framework for building APIs
-- **FastAPI**: Modern Python web framework for building APIs
+### Backend Frameworks & Libraries
+- **FastAPI**: Modern, async Python web framework for APIs.
+- **Flask**: (Legacy/auxiliary) Python web framework.
+- **LangChain**: Framework for LLM orchestration, tool use, and agent workflows.
+- **LangGraph**: State machine framework for orchestrating multi-step LLM workflows.
+- **LangSmith**: Tracing and observability for LLM applications.
+- **PGVector**: PostgreSQL extension for vector similarity search.
+- **psycopg2-binary**: PostgreSQL database adapter for Python.
+- **PyPDF**: PDF parsing and extraction.
+- **sseclient**: Server-Sent Events client for real-time streaming.
 
-### AI/ML Frameworks
-- **LangChain**: Framework for developing applications with LLMs
-- **FAISS**: Library for efficient similarity search and clustering
-- **OpenAI**: API for accessing GPT models
+### Orchestration & Agent Infrastructure
+- **MultiServerMCPClient**: Multi-agent orchestration and tool integration.
+- **Langchain MCP Adapters**: For agent-to-agent and tool communication.
+- **Job Scraper Service**: Custom tool for scraping job boards (Indeed, LinkedIn).
+- **Resume Curation Agent**: Automated resume enhancement pipeline.
+- **Resume Comparison Agent**: Automated job-resume scoring.
 - **NVIDIA AI Endpoints**: Platform for deploying AI models
 
-### Styling & UI Frameworks
-- **Tailwind CSS**: Utility-first CSS framework
-- **React Tabs**: Tab component library for React
+### Database & Storage
+- **PostgreSQL**: Relational database for job, resume, and embedding storage.
+- **PGVector**: Vector extension for similarity search.
+- **File System**: Local storage for uploads and intermediate files.
 
 ### Development & Build Tools
-- **Node.js**: JavaScript runtime environment
-- **npm**: Package manager for Node.js
-- **Docker**: Containerization platform
-
-### Database & Storage
-- **FAISS**: Vector database for similarity search
-- **File System**: Local file storage for uploads
-- **PyPDF**: PDF parsing library
+- **Node.js**: JavaScript runtime for frontend tooling.
+- **npm**: Node.js package manager.
+- **Docker**: Containerization for consistent development and deployment.
 
 ### API & Integration
-- **REST API**: HTTP-based API architecture
-- **Server-Sent Events (SSE)**: Real-time data streaming
-- **CORS**: Cross-Origin Resource Sharing
+- **REST API**: HTTP-based API endpoints.
+- **Server-Sent Events (SSE)**: Real-time data streaming to UI.
+- **CORS**: Cross-Origin Resource Sharing for API access.
 
+### Other Libraries & Utilities
+- **torch, torchvision, torchaudio**: PyTorch ecosystem for model inference.
+- **docling**: Document processing utilities.
 
-
-
-# pip install stuff
-pip install pandas
-pip install python-jobspy
-pip install openai==0.28
-pip install openai-agents
-pip install langgraph langchain
-pip install from langchain_community.llms import Ollama
-pip install langchain_community
-pip install langgraph-prebuilt
-pip install sseclient
-pip install docling
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
-uv install -U xformers --index-url https://download.pytorch.org/whl/cu128
-pip install --upgrade langchain pgvector psycopg2-binary
-
-docker compose build fast-server
-
-docker exec -it pgvector-db /bin/bash
-psql -U vector_admin -d resume_agent
-SELECT title,score,curated FROM jobs;
-SELECT title,score,recommendations FROM jobs;
-SELECT title,curated_resume FROM jobs LIMIT 1;
-\dx
-\d+ resume_embeddings
-\d+ langchain_pg_embedding
-SELECT * FROM langchain_pg_embedding LIMIT 5;
-SELECT COUNT(*) FROM langchain_pg_embedding;
-
-DELETE FROM langchain_pg_embedding;
-DELETE FROM jobs;
-
-changes:
-✅Utilize postgres for job storage
-✅store job info in the postgres table.
-✅return job title and some info but keep the description in the DB. It's too big for the prompt and causes issues.
-✅Move job compare to graph as a node
-✅Move job compare loop to the agent logic
-✅save scores and comparison details to postgres table
-✅sCreate curation agent
-✅suse postgres table to get job desc, score, and comparision details
-✅srag for resume
-✅ssend resume, job desc, comparision details to llm to generate new resume
-✅create feedback loop to do initial compare, review and fix errors, review tone to match job description, format for ats, cross validate with original resume to avoid hallucinations.
-✅save new resume to table, save raw markdown format a
-✅Add fully automated resume agent UI page
-save in pdf format
-orchestrator can extract new resume markdown and pdf to put on UI
-UI will list job title, score, link, markdown download, and pdf download
+> **Note:** FAISS is no longer used for vector search; PGVector with PostgreSQL is now the primary vector database.
