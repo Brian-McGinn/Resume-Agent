@@ -144,3 +144,37 @@ def update_job_curated_resume(updated_job: models.job):
     finally:
         if conn:
             conn.close()
+
+def get_jobs_table(limit: int=10):
+    """
+    Retrieve all job records from the PostgreSQL jobs table and return as a JSON array.
+
+    Returns:
+        list: List of job dicts with all fields from the jobs table.
+    """
+    conn = None
+    try:
+        conn = get_postgres_connection()
+        cur = conn.cursor()
+        # The parameter for LIMIT must be a tuple, even if it's a single value
+        cur.execute("SELECT title, company, job_url, location, is_remote, curated FROM jobs LIMIT %s;", (limit,))
+        rows = cur.fetchall()
+        jobs = []
+        for row in rows:
+            jobs.append({
+                "title": row[0],
+                "company": row[1],
+                "job_url": row[2],
+                "location": row[3],
+                "is_remote": row[4],
+                "curated": row[5]
+            })
+        return jobs
+    except Exception as e:
+        print(f"Error retrieving jobs from postgres: {e}")
+        if conn:
+            conn.rollback()
+        raise
+    finally:
+        if conn:
+            conn.close()

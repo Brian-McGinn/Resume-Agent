@@ -1,4 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+interface Job {
+  title: string;
+  job_url: string;
+  score: number;
+  location: string;
+  is_remote: boolean;
+  curated: boolean;
+}
 
 const AgentRunner: React.FC = () => {
   const [fields, setFields] = useState({
@@ -9,7 +18,9 @@ const AgentRunner: React.FC = () => {
     field5: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [reviseMsg, setReviseMsg] = useState('');
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loadingJobs] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFields({
@@ -21,7 +32,6 @@ const AgentRunner: React.FC = () => {
   const handleAutomat = async () => {
     try {
       setIsLoading(true);
-      setReviseMsg('');
 
       const params = new URLSearchParams({
         search_term: fields.field1 || "software engineer",
@@ -34,21 +44,12 @@ const AgentRunner: React.FC = () => {
 
       if (!res.ok) throw new Error(`Error: ${res.status}`);
 
-    //   The automate endpoint returns a single async result, not a stream
-      const result = await res.json();
-
-    //   You may need to adjust this depending on the response structure
-    //   For example, if result is { message: "..." }
-      if (typeof result === 'string') {
-        setReviseMsg(result);
-      } else if (result && result.message) {
-        setReviseMsg(result.message);
-      } else {
-        setReviseMsg(JSON.stringify(result));
-      }
+      // Wait for automate to finish, then refresh the curated jobs table
+      const data = await res.json();
+      setJobs(data);
     } catch (err) {
       console.error('Post error:', err);
-      setReviseMsg('Error: ' + (err as Error).message);
+      setError('Error: ' + (err as Error).message);
     } finally {
       setIsLoading(false);
     }
@@ -132,13 +133,50 @@ const AgentRunner: React.FC = () => {
       </div>
       {/* Right Section: 2/3 width */}
       <div className="w-2/3 p-6 flex flex-col">
-        <textarea
-          value={reviseMsg}
-          readOnly
-          placeholder={isLoading ? "Processing..." : "Result will appear here..."}
-          className="w-full h-full p-2 border border-gray-300 rounded resize-none overflow-auto"
-          style={{ minHeight: '300px', overflow: 'auto' }}
-        />
+        <div className="overflow-auto" style={{ minHeight: '300px', maxHeight: '600px' }}>
+          {loadingJobs ? (
+            <div className="text-gray-500">Loading curated jobs...</div>
+          ) : error ? (
+            <div className="text-red-500">Error: {error}</div>
+          ) : (
+            <table className="min-w-full border border-gray-300 rounded">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="px-4 py-2 border-b">Title</th>
+                  <th className="px-4 py-2 border-b">Job URL</th>
+                  <th className="px-4 py-2 border-b">Score</th>
+                  <th className="px-4 py-2 border-b">Location</th>
+                  <th className="px-4 py-2 border-b">Is Remote</th>
+                  <th className="px-4 py-2 border-b">Curated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobs.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4 text-gray-500">
+                      No curated jobs found.
+                    </td>
+                  </tr>
+                ) : (
+                  jobs.map((job, idx) => (
+                    <tr key={job.job_url || idx} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 border-b">{job.title}</td>
+                      <td className="px-4 py-2 border-b">
+                        <a href={job.job_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                          Link
+                        </a>
+                      </td>
+                      <td className="px-4 py-2 border-b">{job.score}</td>
+                      <td className="px-4 py-2 border-b">{job.location}</td>
+                      <td className="px-4 py-2 border-b">{job.is_remote}</td>
+                      <td className="px-4 py-2 border-b">{job.curated ? "Yes" : "No"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

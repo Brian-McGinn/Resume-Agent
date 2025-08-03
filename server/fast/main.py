@@ -130,10 +130,7 @@ async def automate(
             hours_old=hours_old,
             country_indeed=country_indeed
         )
-        if result:
-            return MessageResponse(message="Automation completed successfully")
-        else:
-            return MessageResponse(message="Automation failed")
+        return result
     except Exception as e:
         logger.error(f"Error in automate: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

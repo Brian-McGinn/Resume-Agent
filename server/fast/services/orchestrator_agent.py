@@ -12,6 +12,7 @@ from langchain_ollama.chat_models import ChatOllama
 from typing import List, Annotated
 from typing_extensions import TypedDict
 from langgraph.graph.message import AnyMessage, add_messages
+from services.database_service import get_jobs_table
 
 client = MultiServerMCPClient(
     {
@@ -53,6 +54,8 @@ class AgentService:
             class State(TypedDict):
                 messages: Annotated[List[AnyMessage], add_messages]
                 parsed_jobs: dict
+                job_scores: dict
+                curated_resume: dict
 
             # Nodes
             def chat_node(state: State) -> State:
@@ -107,8 +110,6 @@ class AgentService:
                     comparison_agent = ComparisonAgent()
                     sort_by_score = comparison_agent.generate_job_scores()
                     # Optionally, update the state with scores if needed
-                    for score in sort_by_score:
-                        print("************************",score.title, score.score)
                     state["job_scores"] = sort_by_score
                     return state
                 except Exception as e:
@@ -175,8 +176,7 @@ class AgentService:
                                                                                     country_indeed=country_indeed)]})
             print("------------------------------------")  
             print("finished call")
-            print(final_state)
-            return True
+            return get_jobs_table()
         except Exception  as e:
             print(f"Error while running the automated resume agent: {e}")
-            return False
+            return []
