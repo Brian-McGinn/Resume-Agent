@@ -157,7 +157,7 @@ def get_jobs_table(limit: int=10):
         conn = get_postgres_connection()
         cur = conn.cursor()
         # The parameter for LIMIT must be a tuple, even if it's a single value
-        cur.execute("SELECT title, company, job_url, location, is_remote, curated FROM jobs LIMIT %s;", (limit,))
+        cur.execute("SELECT title, company, job_url, location, is_remote, curated, score FROM jobs ORDER BY score DESC LIMIT %s;", (limit,))
         rows = cur.fetchall()
         jobs = []
         for row in rows:
@@ -167,9 +167,41 @@ def get_jobs_table(limit: int=10):
                 "job_url": row[2],
                 "location": row[3],
                 "is_remote": row[4],
-                "curated": row[5]
+                "curated": row[5],
+                "score": row[6]
             })
         return jobs
+    except Exception as e:
+        print(f"Error retrieving jobs from postgres: {e}")
+        if conn:
+            conn.rollback()
+        raise
+    finally:
+        if conn:
+            conn.close()
+
+def get_curated_resume(job_url: str):
+    """
+    Retrieve the curated resume string for a specific job from the PostgreSQL jobs table.
+
+    Args:
+        job_url (str): The unique URL identifier for the job.
+
+    Returns:
+        str or None: The curated_resume string for the specified job, or None if not found.
+    """
+    conn = None
+    try:
+        if not job_url or job_url == "":
+            raise ValueError("job_url must not be empty or None")
+        conn = get_postgres_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT curated_resume FROM jobs WHERE job_url=%s;", (job_url,))
+        row = cur.fetchone()
+        if row is not None:
+            return row[0]
+        else:
+            return None
     except Exception as e:
         print(f"Error retrieving jobs from postgres: {e}")
         if conn:

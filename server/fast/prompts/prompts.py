@@ -86,50 +86,100 @@ automate_prompt = HumanMessagePromptTemplate.from_template(
     """
 )
 
+curate_system_prompt = SystemMessagePromptTemplate.from_template(
+    """
+    You are a career coach AI assistant. Your task is to evaluate how well a candidate's resume aligns with a specific job description. 
+    Your task is to help me secure more job interviews by optimizing my resume to highlight relevant skills and experiences.
+    Be fair, detailed, and professional.
+    """
+)
+
 curate_resume_step_1_compare = HumanMessagePromptTemplate.from_template(
     """
-    Compare {resume} to {job_description} to provide information about gaps and recommendations for improvement.
-    Combine {recommendations} with the new gaps and recommendations to refine the improvements needed for the resume.
-    IMPORTANT: do not modify content from {resume}.
-    Create a new resume using bullet points from {resume}.
-    ONLY return the final resume.
+    resume:
+    {resume}
+
+    Job_description:
+    {job_description}
+
+    recommendations:
+    {recommendations}
+
+    Compare the resume to the job_description to identify gaps and generate recommendations for improvement.
+    Use the recommendations and identified gaps only as a reference to help improve the curated_resume.
+    Do NOT include the recommendations and gaps in the return text.
+
+    IMPORTANT: The contact information at the very top of the resume—including the candidate's name, all location information (such as city, state, or zipcode), phone number, and any links (such as LinkedIn or personal website)—must remain completely unchanged in the curated_resume. Do not alter, remove, or add to this contact information in any way. The candidate's name must always be present at the very top of the curated_resume, exactly as it appears in the original resume.
+
+    Do NOT modify any content from the resume except for rearranging and highlighting relevant information as described below.
+
+    Create a new resume by keeping all of the resume content, rearranging the bullet points related to the job_description so they are at the top of the experience section.
+    Move the skills in the skill section so skills related to the job_description are highlighted at the top.
+    ONLY return the {{curated_resume}}.
+
+    The final resume should fill in a template similar to the following, making sure the candidate's name is at the very top and unchanged:
+    Jon Smith | zipcode | phone | linkedin (link)
+
+    Summary:
+    Software developer with 10 years of experience at my company. Developed GenAI applications for the past year. Excited to fill the needs for the job_description and contribute to the new team.
+
+    Skills:
+    GenAI: Langchain | LangGraph | LLM
+    Code: Python | React | Javascript
+
+    Experience:
+    job 2024 - present
+    - Created a resume agent to assist with job searching and curation
+
+    Education
+    - University: Masters in Computer Science 2020
     """
 )
 
-curate_resume_step_2_highlight = HumanMessagePromptTemplate.from_template(
+curate_resume_step_2_proofread = HumanMessagePromptTemplate.from_template(
     """
-    IMPORTANT: do not modify content from {resume}.
-    Create a new resume using bullet points from {resume}.
-    Examine the job description carefully and identify keywords and skills that the employer emphasizes to select the appropriate bullet points.
-    Only include bullet points and skills that are relevant to {job_description}.
-    Adjust my resume to bold my qualifications that match the {job_description} requirements.
-    This customization shows employers my candidacy aligns well with the job expectations.
-    Store the final version of my resume in {curated_resume}.
-    """
-)
+    curated_resume:
+    {curated_resume}
 
-curate_resume_step_3_proofread = HumanMessagePromptTemplate.from_template(
-    """
-    Proofread my tailored resume for any errors in spelling, grammar, or formatting.
+    Proofread all sections of the curated_resume except for the contact information and education sections. 
+    Do not make any changes to the contact information at the top or the education section.
+    For all other sections, check for and correct any errors in spelling, grammar, or formatting.
     Pay special attention to consistency in style and detail.
-    Consider asking a friend or using professional services to review my resume.
-    This ensures it is polished and professional.
-    Store the final version of my resume in {curated_resume}.
+    ONLY return the curated_resume.
+    DO NOT include additional notes or proofreading suggestions.
     """
 )
 
-curate_resume_step_4_cross_check_original = HumanMessagePromptTemplate.from_template(
+curate_resume_step_3_cross_check_original = HumanMessagePromptTemplate.from_template(
     """
-    Compare bullet points from {resume} and {curated_resume}.
+    resume:
+    {resume}
+
+    curated_resume:
+    {curated_resume}
+
+    Do not make any changes to the contact information at the top or the education section.
+    Compare bullet points from the original resume and curated_resume
     Only modify mismatch bullet points.
     DO NOT include missing bullet points.
-    bullet points  Make sure {curated_resume} bullet points align with {resume} bullet points.
-    If bullet points do not match {resume} rewrite the bullet point to match {resume} bullet point.
+    Make sure curated_resume bullet points align with resume bullet points.
+    If bullet points do not match resume rewrite the bullet point to match resume bullet point.
+    ONLY return the curated_resume after comparing the bullet points.
     """
 )
 
-curate_resume_step_5_format = HumanMessagePromptTemplate.from_template(
+curate_resume_step_4_format = HumanMessagePromptTemplate.from_template(
     """
-    Format for Applicant Tracking Systems and print as text.
+    curated_resume:
+    {curated_resume}
+
+    Do not make any changes to the contact information at the top or the education section.
+    Optimize the curated_resume for Applicant Tracking Systems (ATS).
+    Format the curated_resume as a Markdown file:
+    - Each section (such as Summary, Skills, Experience, Education) should be a Markdown header using #.
+    # In the Skills section, format each skill category as a single line starting with a dash (-), followed by the category name, a colon, and the list of skills separated by |. For example: '- GenAI: Langchain | LangGraph | LLM'
+    - Use - for bullet points within each section.
+    ONLY return the curated_resume in the specified Markdown format.
+    DO NOT include any additional notes or explanations.
     """
 )

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import 'jspdf'
+import 'html2pdf.js'
 
 interface Job {
   title: string;
@@ -52,6 +54,63 @@ const AgentRunner: React.FC = () => {
       setError('Error: ' + (err as Error).message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Download resume as markdown or pdf file for a given job_url
+  const handleDownloadResume = async (job_url: string, jobTitle: string, asPdf: boolean = false) => {
+    try {
+      const paramsObj: Record<string, string> = { job_url };
+      const params = new URLSearchParams(paramsObj).toString();
+      const res = await fetch(`http://localhost:3003/api/download_curated_resume?${params}`);
+      if (!res.ok) throw new Error(`Error: ${res.status}`);
+
+      const safeTitle = jobTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const markdown = await res.text();
+
+      if (asPdf) {
+        // Convert markdown to HTML
+        let html = '';
+        try {
+          const { marked } = await import('marked');
+          html = marked.parse(markdown);
+        } catch (e) {
+          // fallback: wrap in <pre>
+          html = `<pre>${markdown.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+        }
+
+        // Create a temporary element to hold the HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        document.body.appendChild(tempDiv);
+
+        // Use html2pdf to generate PDF from HTML
+        await html2pdf()
+          .from(tempDiv)
+          .set({
+            filename: `${safeTitle}_resume.pdf`,
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+          })
+          .save();
+
+        document.body.removeChild(tempDiv);
+      } else {
+        // Download as markdown
+        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeTitle}_resume.md`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 0);
+      }
+    } catch (err) {
+      setError('Download error: ' + (err as Error).message);
     }
   };
 
@@ -148,12 +207,13 @@ const AgentRunner: React.FC = () => {
                   <th className="px-4 py-2 border-b">Location</th>
                   <th className="px-4 py-2 border-b">Is Remote</th>
                   <th className="px-4 py-2 border-b">Curated</th>
+                  <th className="px-4 py-2 border-b">Download Resume</th>
                 </tr>
               </thead>
               <tbody>
                 {jobs.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-center py-4 text-gray-500">
+                    <td colSpan={7} className="text-center py-4 text-gray-500">
                       No curated jobs found.
                     </td>
                   </tr>
@@ -170,6 +230,20 @@ const AgentRunner: React.FC = () => {
                       <td className="px-4 py-2 border-b">{job.location}</td>
                       <td className="px-4 py-2 border-b">{job.is_remote}</td>
                       <td className="px-4 py-2 border-b">{job.curated ? "Yes" : "No"}</td>
+                      <td className="px-4 py-2 border-b flex flex-col gap-2">
+                        <button
+                          className="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded mb-1"
+                          onClick={() => handleDownloadResume(job.job_url, job.title)}
+                        >
+                          Download Resume
+                        </button>
+                        <button
+                          className="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded"
+                          onClick={() => handleDownloadResume(job.job_url, job.title, true)}
+                        >
+                          Download Resume Pdf
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}

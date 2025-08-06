@@ -54,15 +54,11 @@ Automates the process of sending curated job lists and enhanced resumes to users
 
 Hosts a collection of standardized prompt templates that can be leveraged by agents to ensure consistency and quality in LLM-driven tasks.
 
-### A2A Server
-
-The Agent-to-Agent (A2A) Server hosts specialized agents responsible for resume comparison and curation.
-
-#### Resume Comparison Agent
+### Resume Comparison Agent
 
 This agent analyzes the list of jobs retrieved by the Job Scraper Tool and evaluates each job against the uploaded resume. It generates a job score for each position, quantifying the degree of match and prioritizing opportunities for the user.
 
-#### Resume Curation Agent
+### Resume Curation Agent
 
 The Curation Agent is responsible for orchestrating the automated refinement of resumes to better align with specific job descriptions. It leverages a multi-step pipeline built using LangChain and LangGraph, integrating retrieval-augmented generation (RAG), PostgreSQL (with PGVector), and large language models (LLMs) to iteratively enhance and format resumes for optimal job matching.
 

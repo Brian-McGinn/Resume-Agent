@@ -1,5 +1,4 @@
 
-from langchain_ollama.chat_models import ChatOllama
 from langgraph.graph import StateGraph, START, END
 from services.rag_service import get_context
 from services import models
@@ -8,20 +7,23 @@ from typing_extensions import TypedDict
 from langchain.schema.runnable import RunnableLambda
 from langchain.prompts import ChatPromptTemplate
 from prompts.prompts import (
-    system_prompt,
+    curate_system_prompt,
     curate_resume_step_1_compare,
-    curate_resume_step_2_highlight,
-    curate_resume_step_3_proofread,
-    curate_resume_step_4_cross_check_original,
-    curate_resume_step_5_format,
+    curate_resume_step_2_proofread,
+    curate_resume_step_3_cross_check_original,
+    curate_resume_step_4_format,
 )
+# from langchain_ollama.chat_models import ChatOllama
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
+LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 
 class CurationAgent:
-    def create_graph(self, min_job_score: int = 60):
+    def create_graph(self, min_job_score: int = 50):
         try:
             print("Creating Ollama LLM...")
             # Create Ollama-based LLM (using llama3)
-            llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434")
+            # llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434", temperature=0.7, , max_tokens=2048)
+            llm = ChatNVIDIA(model=LLM_MODEL, temperature=0.7, max_tokens=2048)
 
             # State Management
             class State(TypedDict):
@@ -43,8 +45,9 @@ class CurationAgent:
                 if jobs and len(jobs) > 0:
                     curated_resumes = []
                     for job in jobs:
-                        response = curate_resume_llm(llm, state["resume"], job.description, job.recommendations)
-                        job.curated_resume = response.content
+                        content = curate_resume_llm(llm, state["resume"], job.description, job.recommendations)
+                        print("???????????????????????????",content)
+                        job.curated_resume = content
                         update_job_curated_resume(job)
                         curated_resumes.append({
                             "job_url": job.job_url,
@@ -95,23 +98,62 @@ class CurationAgent:
             print(f"Error while running the curation resume agent: {e}")
             return False
 
-def curate_resume_llm(llm: ChatOllama, resume: str, job_description: str, recommendations: str):
-    # Chain with system_prompt at the start
-    curation_chain_pipe = (
-        ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_1_compare]) 
-        | llm 
-        | RunnableLambda(lambda output1: {"resume": resume, "job_description": job_description, "curated_resume": output1.content}) 
-        | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_2_highlight]) 
-        | llm 
-        | RunnableLambda(lambda output2: {"curated_resume": output2.content}) 
-        | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_3_proofread]) 
-        | llm 
-        | RunnableLambda(lambda output3: {"curated_resume": output3.content, "resume": resume}) 
-        | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_4_cross_check_original]) 
-        | llm 
-        | RunnableLambda(lambda output4: {}) 
-        | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_5_format]) 
-        | llm
-    )
+def curate_resume_step_1(llm: ChatNVIDIA, resume: str, job_description: str, recommendations: str):
+    prompt = ChatPromptTemplate.from_messages([curate_system_prompt, curate_resume_step_1_compare])
+    result = llm.invoke(prompt.format(resume=resume, job_description=job_description, recommendations=recommendations))
+    content = result.content if hasattr(result, "content") else result
+    return {"curated_resume": content}
 
-    return curation_chain_pipe.invoke({"resume": resume, "job_description": job_description, "recommendations": recommendations})
+def curate_resume_step_2(llm: ChatNVIDIA, curated_resume: str):
+    prompt = ChatPromptTemplate.from_messages([curate_system_prompt, curate_resume_step_2_proofread])
+    result = llm.invoke(prompt.format(curated_resume=curated_resume))
+    content = result.content if hasattr(result, "content") else result
+    return {"curated_resume": content}
+
+def curate_resume_step_3(llm: ChatNVIDIA, curated_resume: str, resume: str):
+    prompt = ChatPromptTemplate.from_messages([curate_system_prompt, curate_resume_step_3_cross_check_original])
+    result = llm.invoke(prompt.format(curated_resume=curated_resume, resume=resume))
+    content = result.content if hasattr(result, "content") else result
+    return {"curated_resume": content}
+
+def curate_resume_step_4(llm: ChatNVIDIA, curated_resume: str):
+    prompt = ChatPromptTemplate.from_messages([curate_system_prompt, curate_resume_step_4_format])
+    result = llm.invoke(prompt.format(curated_resume=curated_resume))
+    content = result.content if hasattr(result, "content") else result
+    return content
+
+def curate_resume_llm(llm: ChatNVIDIA, resume: str, job_description: str, recommendations: str):
+    # Step 1: Compare and rearrange resume
+    step1 = curate_resume_step_1(llm, resume, job_description, recommendations)
+    # Step 2: Proofread
+    print("!!!!!!!!!!!!!!step1", step1["curated_resume"])
+    step2 = curate_resume_step_2(llm, step1["curated_resume"])
+    # Step 3: Cross-check with original
+    print("!!!!!!!!!!!!!!step2", step2["curated_resume"])
+    step3 = curate_resume_step_3(llm, step2["curated_resume"], resume)
+    # Step 4: Format for ATS
+    print("!!!!!!!!!!!!!!step3", step3["curated_resume"])
+    final_resume = curate_resume_step_4(llm, step3["curated_resume"])
+    return final_resume
+
+
+# def curate_resume_llm(llm: ChatOllama, resume: str, job_description: str, recommendations: str):
+#     # Chain with system_prompt at the start
+#     curation_chain_pipe = (
+#         ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_1_compare])
+#         | llm
+#         | RunnableLambda(lambda output1: {"resume": resume, "job_description": job_description, "curated_resume": output1.content})
+#         | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_2_highlight])
+#         | llm
+#         | RunnableLambda(lambda output2: {"curated_resume": output2.content})
+#         | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_3_proofread])
+#         | llm
+#         | RunnableLambda(lambda output3: {"curated_resume": output3.content, "resume": resume})
+#         | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_4_cross_check_original])
+#         | llm
+#         | RunnableLambda(lambda output4: {})
+#         | ChatPromptTemplate.from_messages([system_prompt, curate_resume_step_5_format])
+#         | llm
+#     )
+
+#     return curation_chain_pipe.invoke({"resume": resume, "job_description": job_description, "recommendations": recommendations})

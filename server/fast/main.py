@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from services.llm_service import LLMService
 from services.rag_service import setEmbeddings
 from services.orchestrator_agent import AgentService
+from services.database_service import get_curated_resume
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
@@ -170,6 +171,22 @@ async def upload(file: UploadFile = File(...)):
         logger.error(f"Error in upload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/download_curated_resume")
+async def download_curated_resume(job_url: str = Query(..., description="The job_url to retrieve the curated resume for")):
+    """
+    Retrieve the curated resume for a specific job.
+    """
+    try:
+        curated_resume = get_curated_resume(job_url)
+        if not curated_resume:
+            raise HTTPException(status_code=404, detail="Curated resume not found for the given job_url")
+        return curated_resume
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_curated_resume: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/")
 async def root():
     """
@@ -181,7 +198,8 @@ async def root():
         "endpoints": {
             "upload": "/api/upload",
             "send_message": "/api/send_message", 
-            "revise_resume": "/api/revise_resume"
+            "revise_resume": "/api/revise_resume",
+            "get_curated_resume": "/api/get_curated_resume"
         }
     }
 

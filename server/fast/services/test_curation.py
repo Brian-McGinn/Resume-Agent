@@ -11,4 +11,6 @@ from services.curation_agent import CurationAgent
 if __name__ == "__main__":
     agent = CurationAgent()
     response = agent.curate_resume()
-    print(response)
+    # print(response)
+    # print("!!!!!!!!!!!!!!!")
+    # print(response.get("resume"))

@@ -8,11 +8,13 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.messages import ToolMessage
 import json
-from langchain_ollama.chat_models import ChatOllama
 from typing import List, Annotated
 from typing_extensions import TypedDict
 from langgraph.graph.message import AnyMessage, add_messages
 from services.database_service import get_jobs_table
+from langchain_ollama.chat_models import ChatOllama
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
+LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 
 client = MultiServerMCPClient(
     {
@@ -28,7 +30,8 @@ class AgentService:
         try:
             print("Creating Ollama LLM...")
             # Create Ollama-based LLM (using llama3)
-            llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434")
+            # llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434")
+            llm = ChatNVIDIA(model=LLM_MODEL)
             
             print("Getting tools from MCP client...")
             try:

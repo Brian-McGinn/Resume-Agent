@@ -1,9 +1,9 @@
-from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from prompts.prompts import resume_revise_prompt, system_prompt, resume_review_prompt
 from typing import Generator
 from services.rag_service import log_to_langsmith
 from services.rag_service import get_context
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 
 class LLMService:
