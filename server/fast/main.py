@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from services.llm_service import LLMService
 from services.rag_service import setEmbeddings
 from services.orchestrator_agent import AgentService
@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import json
 import logging
 from typing import Generator
+from markdown_pdf import MarkdownPdf, Section
 
 # Configure logging first
 logging.basicConfig(
@@ -112,7 +113,8 @@ async def automate(
     location: str = "Phoenix, AZ",
     results_wanted: int = 10,
     hours_old: int = 24,
-    country_indeed: str = "USA"
+    country_indeed: str = "USA",
+    min_job_score: int = 60
 ):
     """
     Begin the automated resume agent.
@@ -129,7 +131,8 @@ async def automate(
             location=location,
             results_wanted=results_wanted,
             hours_old=hours_old,
-            country_indeed=country_indeed
+            country_indeed=country_indeed,
+            min_job_score=min_job_score
         )
         return result
     except Exception as e:
@@ -172,15 +175,33 @@ async def upload(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/download_curated_resume")
-async def download_curated_resume(job_url: str = Query(..., description="The job_url to retrieve the curated resume for")):
+async def download_curated_resume(job_url: str, asPdf: bool = False):
     """
     Retrieve the curated resume for a specific job.
+    If asPdf is True, return the resume as a PDF file.
+    Otherwise, return the markdown content.
     """
     try:
-        curated_resume = get_curated_resume(job_url)
+        title, curated_resume = get_curated_resume(job_url)
         if not curated_resume:
             raise HTTPException(status_code=404, detail="Curated resume not found for the given job_url")
-        return curated_resume
+        
+        if asPdf:
+            # Create a MarkdownPdf object
+            pdf = MarkdownPdf()
+            # Add a section with the Markdown content
+            pdf.add_section(Section(curated_resume))
+            # Save the PDF to a file
+            output_pdf_path = "curated_resume.pdf"
+            pdf.save(output_pdf_path)
+            # Return the PDF file as a response
+            return FileResponse(
+                output_pdf_path,
+                media_type="application/pdf",
+                filename=f"{title}.pdf"
+            )
+        else:
+            return curated_resume
     except HTTPException:
         raise
     except Exception as e:

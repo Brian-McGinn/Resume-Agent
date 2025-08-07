@@ -18,7 +18,7 @@ from langchain_nvidia_ai_endpoints import ChatNVIDIA
 LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 
 class CurationAgent:
-    def create_graph(self, min_job_score: int = 50):
+    def create_graph(self):
         try:
             print("Creating Ollama LLM...")
             # Create Ollama-based LLM (using llama3)
@@ -29,6 +29,7 @@ class CurationAgent:
             class State(TypedDict):
                 resume: str
                 jobs: list[models.job]
+                min_job_score: int
 
             def get_resume(state: State) -> State:
                 print("Get latest resume from vector store.")
@@ -37,7 +38,7 @@ class CurationAgent:
 
             def get_job_data(state: State) -> State:
                 print("Get list of non curated jobs.")
-                state["jobs"] = get_job_description(min_job_score)
+                state["jobs"] = get_job_description(state["min_job_score"])
                 return state
             
             def curate(state: State) -> State:
@@ -83,14 +84,14 @@ class CurationAgent:
             traceback.print_exc()
             raise
 
-    def curate_resume(self):
+    def curate_resume(self, min_job_score):
         """Handle job curation agent orchestration request."""
         try:
             agent = self.create_graph()
 
             print("Call resume curation agent")
             print("------------------------------------")           
-            final_state = agent.invoke({})
+            final_state = agent.invoke({"min_job_score": min_job_score})
             print("------------------------------------")  
             print("finished curation call")
             return final_state

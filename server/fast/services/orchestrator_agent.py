@@ -59,6 +59,7 @@ class AgentService:
                 parsed_jobs: dict
                 job_scores: dict
                 curated_resume: dict
+                min_job_score: int
 
             # Nodes
             def chat_node(state: State) -> State:
@@ -128,7 +129,7 @@ class AgentService:
                 try:
                     print("curate Agent")
                     curation_agent = CurationAgent()
-                    curated_resume = curation_agent.curate_resume()
+                    curated_resume = curation_agent.curate_resume(state["min_job_score"])
                     state["curated_resume"] = curated_resume
                     return state
                 except Exception as e:
@@ -165,18 +166,18 @@ class AgentService:
             traceback.print_exc()
             raise
 
-    async def automate(self, search_term: str = "software engineer", location: str = "Phoenix, AZ", results_wanted: int = 10, hours_old: int = 24, country_indeed: str = "USA"):
+    async def automate(self, search_term: str = "software engineer", location: str = "Phoenix, AZ", results_wanted: int = 10, hours_old: int = 24, country_indeed: str = "USA", min_job_score: int = 60):
         """Handle automated agent orchestration request."""
         try:
             agent = await self.create_graph()
 
             print("Call resume agent")
             print("------------------------------------")           
-            final_state = await agent.ainvoke({"messages": [automate_prompt.format(search_term=search_term, 
+            final_state = await agent.ainvoke({"min_job_score": min_job_score, "messages": [automate_prompt.format(search_term=search_term, 
                                                                                     location=location, 
                                                                                     results_wanted=results_wanted, 
                                                                                     hours_old=hours_old, 
-                                                                                    country_indeed=country_indeed)]})
+                                                                                    country_indeed=country_indeed)],})
             print("------------------------------------")  
             print("finished call")
             return get_jobs_table()

@@ -196,10 +196,10 @@ def get_curated_resume(job_url: str):
             raise ValueError("job_url must not be empty or None")
         conn = get_postgres_connection()
         cur = conn.cursor()
-        cur.execute("SELECT curated_resume FROM jobs WHERE job_url=%s;", (job_url,))
+        cur.execute("SELECT title, curated_resume FROM jobs WHERE job_url=%s;", (job_url,))
         row = cur.fetchone()
         if row is not None:
-            return row[0]
+            return row[0], row[1]
         else:
             return None
     except Exception as e:

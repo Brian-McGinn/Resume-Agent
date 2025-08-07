@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import 'jspdf'
-import 'html2pdf.js'
 
 interface Job {
   title: string;
@@ -13,11 +11,12 @@ interface Job {
 
 const AgentRunner: React.FC = () => {
   const [fields, setFields] = useState({
-    field1: '',
-    field2: '',
-    field3: '',
-    field4: '',
-    field5: '',
+    search_term: '',
+    location: '',
+    result_limit: '',
+    hours_old: '',
+    country: '',
+    minimum_score: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -36,11 +35,12 @@ const AgentRunner: React.FC = () => {
       setIsLoading(true);
 
       const params = new URLSearchParams({
-        search_term: fields.field1 || "software engineer",
-        location: fields.field2 || "Phoenix, AZ",
-        results_wanted: fields.field3 || "10",
-        hours_old: fields.field4 || "24",
-        country_indeed: fields.field5 || "USA",
+        search_term: fields.search_term || "software engineer",
+        location: fields.location || "Phoenix, AZ",
+        results_wanted: fields.result_limit || "10",
+        hours_old: fields.hours_old || "24",
+        country_indeed: fields.country || "USA",
+        min_job_score: fields.minimum_score || "60",
       }).toString();
       const res = await fetch(`http://localhost:3003/api/automate?${params}`);
 
@@ -60,43 +60,33 @@ const AgentRunner: React.FC = () => {
   // Download resume as markdown or pdf file for a given job_url
   const handleDownloadResume = async (job_url: string, jobTitle: string, asPdf: boolean = false) => {
     try {
-      const paramsObj: Record<string, string> = { job_url };
-      const params = new URLSearchParams(paramsObj).toString();
+      const paramsObj: Record<string, string | boolean> = { job_url };
+      if (asPdf) {
+        paramsObj['asPdf'] = 'true';
+      }
+      const params = new URLSearchParams(paramsObj as Record<string, string>).toString();
       const res = await fetch(`http://localhost:3003/api/download_curated_resume?${params}`);
+
       if (!res.ok) throw new Error(`Error: ${res.status}`);
 
       const safeTitle = jobTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const markdown = await res.text();
 
       if (asPdf) {
-        // Convert markdown to HTML
-        let html = '';
-        try {
-          const { marked } = await import('marked');
-          html = marked.parse(markdown);
-        } catch (e) {
-          // fallback: wrap in <pre>
-          html = `<pre>${markdown.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
-        }
-
-        // Create a temporary element to hold the HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        document.body.appendChild(tempDiv);
-
-        // Use html2pdf to generate PDF from HTML
-        await html2pdf()
-          .from(tempDiv)
-          .set({
-            filename: `${safeTitle}_resume.pdf`,
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
-          })
-          .save();
-
-        document.body.removeChild(tempDiv);
+        // Download as PDF
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeTitle}_resume.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 0);
       } else {
         // Download as markdown
+        const markdown = (await res.text()).replace(/"/g, '');
         const blob = new Blob([markdown], { type: 'text/markdown' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -119,62 +109,74 @@ const AgentRunner: React.FC = () => {
       {/* Left Section: 1/3 width */}
       <div className="w-1/3 max-w-md p-4 bg-white">
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="field1">Job Title</label>
+          <label className="block mb-1" htmlFor="search_term">Job Title</label>
           <input
-            id="field1"
-            name="field1"
+            id="search_term"
+            name="search_term"
             type="text"
-            value={fields.field1}
+            value={fields.search_term}
             onChange={handleChange}
             placeholder="e.g. Software Engineer"
             className="border rounded px-2 py-1 w-full"
           />
         </div>
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="field2">Location</label>
+          <label className="block mb-1" htmlFor="location">Location</label>
           <input
-            id="field2"
-            name="field2"
+            id="location"
+            name="location"
             type="text"
-            value={fields.field2}
+            value={fields.location}
             onChange={handleChange}
             placeholder="e.g. Phoenix, AZ"
             className="border rounded px-2 py-1 w-full"
           />
         </div>
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="field3">Result Limit</label>
+          <label className="block mb-1" htmlFor="result_limit">Result Limit</label>
           <input
-            id="field3"
-            name="field3"
+            id="result_limit"
+            name="result_limit"
             type="text"
-            value={fields.field3}
+            value={fields.result_limit}
             onChange={handleChange}
             placeholder="e.g. 10"
             className="border rounded px-2 py-1 w-full"
           />
         </div>
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="field4">Hours Old</label>
+          <label className="block mb-1" htmlFor="hours_old">Hours Old</label>
           <input
-            id="field4"
-            name="field4"
+            id="hours_old"
+            name="hours_old"
             type="text"
-            value={fields.field4}
+            value={fields.hours_old}
             onChange={handleChange}
             placeholder="e.g. 24"
             className="border rounded px-2 py-1 w-full"
           />
         </div>
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="field5">Country</label>
+          <label className="block mb-1" htmlFor="country">Country</label>
           <input
-            id="field5"
-            name="field5"
+            id="country"
+            name="country"
             type="text"
-            value={fields.field5}
+            value={fields.country}
             onChange={handleChange}
             placeholder="e.g. USA"
+            className="border rounded px-2 py-1 w-full"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1" htmlFor="minimum_score">Minimum Score</label>
+          <input
+            id="minimum_score"
+            name="minimum_score"
+            type="text"
+            value={fields.minimum_score}
+            onChange={handleChange}
+            placeholder="e.g. 60"
             className="border rounded px-2 py-1 w-full"
           />
         </div>
