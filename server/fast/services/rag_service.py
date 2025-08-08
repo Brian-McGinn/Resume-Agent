@@ -138,13 +138,25 @@ def get_context():
         embedding=document_embedder
     )
 
-    all_docs = vectorstore.similarity_search(query="resume", k=100)
+    # Get all documents in the vectorstore (no filtering)
+    all_docs = vectorstore.similarity_search(query="Get all vectors", k=1000)  # Large k to get all, or use a method to fetch all if available
 
     del vectorstore
 
-    # Format the context as a string
-    context = "\n".join([doc.page_content for doc in all_docs])
+    # For each doc, try to get its index value from metadata, and append both index and content in order
+    context_parts = []
+    for doc in all_docs:
+        index_value = ""
+        if hasattr(doc, "metadata") and doc.metadata and "index" in doc.metadata:
+            index_value = str(doc.metadata["index"])
+        # Append index and content, separated by a newline for clarity
+        if index_value:
+            context_parts.append(f"{index_value}:\n{doc.page_content}")
+        else:
+            context_parts.append(doc.page_content)
+
+    context = "\n\n".join(context_parts)
     clean_context = context.strip()
-    log_to_langsmith(f"Context retrieved for resume from postgres vectorstore.")
+    # log_to_langsmith(f"Context with all vectorstore rows and index values retrieved for resume from postgres vectorstore.")
 
     return clean_context

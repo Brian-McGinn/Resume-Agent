@@ -4,6 +4,7 @@ server/.env
 venv/
 server/fast/vectorstore.pkl
 server/fast/uploads
+server/fast/curated_resume.pdf
 
 # dependencies
 /node_modules

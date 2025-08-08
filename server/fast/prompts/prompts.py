@@ -118,7 +118,7 @@ curate_resume_step_1_compare = HumanMessagePromptTemplate.from_template(
     ONLY return the {{curated_resume}}.
 
     The final resume should fill in a template similar to the following, making sure the candidate's name is at the very top and unchanged:
-    Jon Smith | zipcode | phone | linkedin (link)
+    Firstname Lastname | zipcode | phone | linkedin (link)
 
     Summary:
     Software developer with 10 years of experience at my company. Developed GenAI applications for the past year. Excited to fill the needs for the job_description and contribute to the new team.
