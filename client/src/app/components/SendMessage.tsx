@@ -14,36 +14,6 @@ const SendMessage = () => {
     setTabIndex(index);
   };
 
-  const handleAutomat = async () => {
-    try {
-      setIsLoading(true);
-      setReviseMsg('');
-      setTabIndex(1);
-
-      const res = await fetch('http://localhost:3003/api/automate');
-
-      if (!res.ok) throw new Error(`Error: ${res.status}`);
-
-      // The automate endpoint returns a single async result, not a stream
-      const result = await res.json();
-
-      // You may need to adjust this depending on the response structure
-      // For example, if result is { message: "..." }
-      if (typeof result === 'string') {
-        setReviseMsg(result);
-      } else if (result && result.message) {
-        setReviseMsg(result.message);
-      } else {
-        setReviseMsg(JSON.stringify(result));
-      }
-    } catch (err) {
-      console.error('Post error:', err);
-      setReviseMsg('Error: ' + (err as Error).message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handlePost = async () => {
     try {
       setIsLoading(true);
@@ -166,17 +136,6 @@ const SendMessage = () => {
         <div className="flex gap-2">
           <div>
             <FileUploader />
-            <button
-              onClick={handleAutomat}
-              disabled={isLoading}
-              className={`px-4 py-2 rounded ${isLoading
-                ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                : 'bg-gray-600 hover:bg-gray-400 text-white'
-                }`}
-              style={{ marginRight: '4px' }}
-            >
-              {isLoading ? 'Processing...' : 'Automate'}
-            </button>
             <button
               onClick={handlePost}
               disabled={isLoading}

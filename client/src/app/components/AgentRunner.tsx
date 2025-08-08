@@ -23,6 +23,9 @@ const AgentRunner: React.FC = () => {
   const [loadingJobs] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Track which jobs should have download disabled (by job_url)
+  const [disabledDownloads, setDisabledDownloads] = useState<Record<string, boolean>>({});
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFields({
       ...fields,
@@ -49,6 +52,16 @@ const AgentRunner: React.FC = () => {
       // Wait for automate to finish, then refresh the curated jobs table
       const data = await res.json();
       setJobs(data);
+
+      // After jobs are loaded, update disabledDownloads for jobs below minimum score
+      const minScore = getMinimumScore(fields.minimum_score);
+      const disabled: Record<string, boolean> = {};
+      (data as Job[]).forEach((job: Job) => {
+        if (job.score <= minScore) {
+          disabled[job.job_url] = true;
+        }
+      });
+      setDisabledDownloads(disabled);
     } catch (err) {
       console.error('Post error:', err);
       setError('Error: ' + (err as Error).message);
@@ -102,6 +115,13 @@ const AgentRunner: React.FC = () => {
     } catch (err) {
       setError('Download error: ' + (err as Error).message);
     }
+  };
+
+  // Helper to get minimum score as number
+  const getMinimumScore = (minScoreStr?: string) => {
+    const minScore = minScoreStr !== undefined ? minScoreStr : fields.minimum_score || "60";
+    const parsed = parseFloat(minScore);
+    return isNaN(parsed) ? 60 : parsed;
   };
 
   return (
@@ -220,34 +240,49 @@ const AgentRunner: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  jobs.map((job, idx) => (
-                    <tr key={job.job_url || idx} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 border-b">{job.title}</td>
-                      <td className="px-4 py-2 border-b">
-                        <a href={job.job_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                          Link
-                        </a>
-                      </td>
-                      <td className="px-4 py-2 border-b">{job.score}</td>
-                      <td className="px-4 py-2 border-b">{job.location}</td>
-                      <td className="px-4 py-2 border-b">{job.is_remote}</td>
-                      <td className="px-4 py-2 border-b">{job.curated ? "Yes" : "No"}</td>
-                      <td className="px-4 py-2 border-b flex flex-col gap-2">
-                        <button
-                          className="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded mb-1"
-                          onClick={() => handleDownloadResume(job.job_url, job.title)}
-                        >
-                          Download Resume
-                        </button>
-                        <button
-                          className="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded"
-                          onClick={() => handleDownloadResume(job.job_url, job.title, true)}
-                        >
-                          Download Resume Pdf
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  jobs.map((job, idx) => {
+                    const minScore = getMinimumScore();
+                    const isBelowMin = job.score < minScore;
+                    const isDownloadDisabled = disabledDownloads[job.job_url] || false;
+                    return (
+                      <tr key={job.job_url || idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 border-b">{job.title}</td>
+                        <td className="px-4 py-2 border-b">
+                          <a href={job.job_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                            Link
+                          </a>
+                        </td>
+                        <td className="px-4 py-2 border-b">{job.score}</td>
+                        <td className="px-4 py-2 border-b">{job.location}</td>
+                        <td className="px-4 py-2 border-b">{job.is_remote}</td>
+                        <td className="px-4 py-2 border-b">{job.curated ? "Yes" : "No"}</td>
+                        <td className="px-4 py-2 border-b flex flex-col gap-2">
+                          {isBelowMin ? (
+                            <span className="text-gray-400 italic">Score too low for curation</span>
+                          ) : (
+                            <>
+                              <button
+                                className="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded mb-1"
+                                onClick={() => handleDownloadResume(job.job_url, job.title)}
+                                disabled={isDownloadDisabled}
+                                style={isDownloadDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                              >
+                                Download Resume
+                              </button>
+                              <button
+                                className="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded"
+                                onClick={() => handleDownloadResume(job.job_url, job.title, true)}
+                                disabled={isDownloadDisabled}
+                                style={isDownloadDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                              >
+                                Download Resume Pdf
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

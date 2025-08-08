@@ -24,8 +24,8 @@ class CurationAgent:
         try:
             print("Creating Ollama LLM...")
             # Create Ollama-based LLM (using llama3)
-            llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434", temperature=0.7, max_tokens=2048)
-            # llm = ChatNVIDIA(model=LLM_MODEL, temperature=0.7, max_tokens=2048)
+            # llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434", temperature=0.7, max_tokens=2048)
+            llm = ChatNVIDIA(model=LLM_MODEL, temperature=0.7, max_tokens=2048)
 
             # State Management
             class State(TypedDict):
@@ -101,7 +101,7 @@ class CurationAgent:
             print(f"Error while running the curation resume agent: {e}")
             return False
 
-def curate_resume_llm(llm: ChatOllama, resume: str, job_description: str, recommendations: str):
+def curate_resume_llm(llm: ChatNVIDIA, resume: str, job_description: str, recommendations: str):
     # Chain with system_prompt at the start
     log_to_langsmith(f"Begin the curation chain.")
     curation_chain_pipe = (
