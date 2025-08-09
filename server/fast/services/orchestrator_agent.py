@@ -1,29 +1,18 @@
-from prompts.prompts import automate_prompt
-from services.rag_service import log_to_langsmith
+from prompts.prompts import automate_prompt, system_prompt
+from services.utilities.mcp_util import MCPUtil
 from services.comparison_agent import ComparisonAgent
 from services.curation_agent import CurationAgent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
-from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.messages import ToolMessage
 import json
 from typing import List, Annotated
 from typing_extensions import TypedDict
 from langgraph.graph.message import AnyMessage, add_messages
-from services.database_service import get_jobs_table
-from langchain_ollama.chat_models import ChatOllama
+from .utilities.database_util import get_jobs_table
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
-
-client = MultiServerMCPClient(
-    {
-        "job_scraper": {
-            "url": "http://mcp-server:3004/mcp",
-            "transport": "streamable_http",
-        },
-    }
-)
 
 class AgentService:
     async def create_graph(self):
@@ -32,23 +21,15 @@ class AgentService:
             # Create Ollama-based LLM (using llama3)
             # llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434")
             llm = ChatNVIDIA(model=LLM_MODEL)
-            
-            print("Getting tools from MCP client...")
-            try:
-                tools = await client.get_tools()
-            except Exception as e:
-                print(f"Failed to connect to MCP server: {e}")
-                raise
-            
+            mcp_client = MCPUtil()
+            await mcp_client.get_tools()
+
             print("Binding tools to LLM...")
-            llm_with_tool = llm.bind_tools(tools)
-            
-            print("Getting system prompt from MCP client...")
-            system_prompt = await client.get_prompt(server_name="job_scraper", prompt_name="system_prompt")
-            
+            llm_with_tool = llm.bind_tools(mcp_client.tools)
+
             print("Creating prompt template...")
             prompt_template = ChatPromptTemplate.from_messages([
-                ("system", system_prompt[0].content),
+                system_prompt,
                 MessagesPlaceholder("messages")
             ])
             chat_llm = prompt_template | llm_with_tool
@@ -63,9 +44,8 @@ class AgentService:
 
             # Nodes
             def chat_node(state: State) -> State:
-                print("Running chat!")
+                print("Use the job scraper service to get the latest jobs.")
                 state["messages"] = chat_llm.invoke({"messages": state["messages"]})
-                print("Completed llm call")
                 return state
 
             def parse_tool_json(state: State) -> State:
@@ -143,7 +123,7 @@ class AgentService:
             graph_builder = StateGraph(State)
             #Create graph nodes
             graph_builder.add_node("chat_node", chat_node)
-            graph_builder.add_node("tool_node", ToolNode(tools=tools))
+            graph_builder.add_node("tool_node", ToolNode(tools=mcp_client.tools))
             graph_builder.add_node("parse_jobs_node", parse_tool_json)
             graph_builder.add_node("score_jobs_node", score_jobs_node)
             graph_builder.add_node("curate_resume_node", curate_resume_node)

@@ -1,5 +1,3 @@
-from services.rag_service import get_context
-from typing import List, Dict
 from langchain_core.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate
 
 system_prompt = SystemMessagePromptTemplate.from_template(

@@ -4,7 +4,6 @@ from langchain_core.documents import Document
 from langchain_community.vectorstores.pgvector import PGVector
 from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.document_converter import DocumentConverter, InputFormat, PdfFormatOption
-from langsmith import Client
 from sqlalchemy import create_engine, text
 import os
 import json
@@ -13,21 +12,6 @@ EMBEDDING_MODEL = "nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1"
 CONNECTION_STRING = "postgresql://vector_admin:Resume_Pass@pgvector-db:5432/resume_agent"
 COLLECTION_NAME = "resume_embeddings"
 document_embedder = NVIDIAEmbeddings(model=EMBEDDING_MODEL, truncate="NONE") # Can use other supported models
-
-# Set up LangSmith client if LANGCHAIN_API_KEY is present in environment
-langsmith_endpoint = os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
-LANGCHAIN_API_KEY = os.getenv("LANGCHAIN_API_KEY")
-if LANGCHAIN_API_KEY:
-    langsmith_client = Client(
-            api_key=LANGCHAIN_API_KEY,
-            api_url=langsmith_endpoint
-        )
-else: 
-    langsmith_client = None
-
-def log_to_langsmith(message):
-    if langsmith_client:
-        client.log_message(message)
 
 def delete_all_documents():
     engine = create_engine(CONNECTION_STRING)
@@ -61,7 +45,7 @@ def setEmbeddings(file):
         result = converter.convert(os.path.join("uploads", file.filename))
         documents = result.document.export_to_markdown()
 
-        log_to_langsmith(f"Setting embeddings for resume.")
+        print(f"Setting embeddings for resume.")
         # Split the resume into chunks and save the embeddings to the local vectorstore
         if documents:
             documents_json = llmDocSplit(documents)
@@ -86,10 +70,10 @@ def setEmbeddings(file):
 
             del vectorstore
 
-        log_to_langsmith(f"Embeddings set for resume.")
+        print(f"Embeddings set for resume.")
     except Exception as e:
         print(f"Failed to llm {str(e)}")
-        log_to_langsmith(f"Failed to set embeddings for resume.")
+        print(f"Failed to set embeddings for resume.")
         raise RuntimeError(f"Error getting AI response: {str(e)}")
 
 def llmDocSplit(documents):
@@ -157,6 +141,6 @@ def get_context():
 
     context = "\n\n".join(context_parts)
     clean_context = context.strip()
-    # log_to_langsmith(f"Context with all vectorstore rows and index values retrieved for resume from postgres vectorstore.")
+    print(f"Context with all vectorstore rows and index values retrieved for resume from postgres vectorstore.")
 
     return clean_context

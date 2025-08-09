@@ -1,11 +1,12 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Query
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse
 from services.llm_service import LLMService
 from services.rag_service import setEmbeddings
 from services.orchestrator_agent import AgentService
-from services.database_service import get_curated_resume
+from services.utilities.database_util import get_curated_resume
 from pydantic import BaseModel
+from pathlib import Path
 import os
 from dotenv import load_dotenv
 import json
@@ -20,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).with_name(".env"), override=True)
 app = FastAPI(title="AI Resume Agent", version="1.0.0")
 
 # Add CORS middleware

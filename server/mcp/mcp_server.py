@@ -40,13 +40,5 @@ def job_scraper_get_jobs(request: job_scraper_request = None) -> str:
             country_indeed=request.country_indeed
         )
 
-@mcp.prompt()
-def system_prompt() -> str:
-    """System prompt description"""
-    return """
-    You are an AI assistant use the tools if needed.
-    You will print all results in json format.
-    """
-
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")

@@ -1,9 +1,8 @@
 from prompts.prompts import system_prompt, generate_job_score_prompt
-from services.rag_service import log_to_langsmith
 from langchain_core.prompts import ChatPromptTemplate
 from services import models
 from services.rag_service import get_context
-from services.database_service import get_all_jobs, update_job_score
+from services.utilities.database_util import get_all_jobs, update_job_score
 import json
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
@@ -55,7 +54,7 @@ class ComparisonAgent:
             prompt = ChatPromptTemplate.from_messages([system_prompt, generate_job_score_prompt]).format_messages(context=resume, question=description)
             response = ""
 
-            log_to_langsmith(f"Calculating job score.")
+            print(f"Calculating job score.")
             llm = ChatNVIDIA(model=LLM_MODEL)
             response = llm.invoke(prompt)
 
