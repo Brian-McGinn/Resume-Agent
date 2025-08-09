@@ -15,7 +15,3 @@ class MCPUtil():
         except Exception as e:
             print(f"Failed to connect to MCP server: {e}")
             raise
-    
-    async def get_prompt(self, prompt_name: str):
-        prompt = await self.mcp_client.get_prompt(server_name="job_scraper", prompt_name=prompt_name)
-        return prompt
