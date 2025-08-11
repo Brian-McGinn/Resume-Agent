@@ -17,7 +17,7 @@ LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 class AgentService:
     async def create_graph(self):
         try:
-            print("Creating Ollama LLM...")
+            print("Creating LLM...")
             # Create Ollama-based LLM (using llama3)
             # llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434")
             llm = ChatNVIDIA(model=LLM_MODEL)
@@ -146,7 +146,7 @@ class AgentService:
             traceback.print_exc()
             raise
 
-    async def automate(self, search_term: str = "software engineer", location: str = "Phoenix, AZ", results_wanted: int = 10, hours_old: int = 24, country_indeed: str = "USA", min_job_score: int = 60):
+    async def automate(self, search_term: str = "software engineer", location: str = "", results_wanted: int = 10, hours_old: int = 24, country_indeed: str = "USA", min_job_score: int = 60):
         """Handle automated agent orchestration request."""
         try:
             agent = await self.create_graph()

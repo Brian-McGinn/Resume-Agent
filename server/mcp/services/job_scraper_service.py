@@ -3,7 +3,7 @@ import pandas as pd
 import io
 import psycopg2
 
-def get_jobs(search_term: str = "software engineer", location: str = "Phoenix, AZ", results_wanted: int = 10, hours_old: int = 24, country_indeed: str = 'USA'):
+def get_jobs(search_term: str = "software engineer", location: str = "", results_wanted: int = 10, hours_old: int = 24, country_indeed: str = "USA"):
     jobs = scrape_jobs(
         site_name=["indeed"],
         search_term=search_term,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import FileUploader from './FileUploader';
 
 interface Job {
   title: string;
@@ -39,7 +40,7 @@ const AgentRunner: React.FC = () => {
 
       const params = new URLSearchParams({
         search_term: fields.search_term || "software engineer",
-        location: fields.location || "Phoenix, AZ",
+        location: fields.location || "",
         results_wanted: fields.result_limit || "10",
         hours_old: fields.hours_old || "24",
         country_indeed: fields.country || "USA",
@@ -128,6 +129,10 @@ const AgentRunner: React.FC = () => {
     <div className="flex h-screen">
       {/* Left Section: 1/3 width */}
       <div className="w-1/3 max-w-md p-4 bg-white">
+        {/* FileUploader added above the input boxes */}
+        <div className="mb-6">
+          <FileUploader />
+        </div>
         <div className="mb-4">
           <label className="block mb-1" htmlFor="search_term">Job Title</label>
           <input
@@ -242,8 +247,9 @@ const AgentRunner: React.FC = () => {
                 ) : (
                   jobs.map((job, idx) => {
                     const minScore = getMinimumScore();
-                    const isBelowMin = job.score < minScore;
-                    const isDownloadDisabled = disabledDownloads[job.job_url] || false;
+                    const isBelowMin = job.score <= minScore;
+                    // Download buttons are enabled only if job.curated is true
+                    const isDownloadDisabled = !job.curated;
                     return (
                       <tr key={job.job_url || idx} className="hover:bg-gray-50">
                         <td className="px-4 py-2 border-b">{job.title}</td>

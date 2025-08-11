@@ -18,4 +18,4 @@ docling
 pgvector
 psycopg2-binary
 ollama
-markdown_pdf
+weasyprint

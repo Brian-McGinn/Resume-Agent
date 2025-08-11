@@ -12,15 +12,14 @@ export default function Home() {
       <main>
         <Tabs>
           <TabList>
-            <Tab>Send Message</Tab>
-            <Tab>Agent Runner</Tab>
+            <Tab>Automated Resume Agent</Tab>
+            <Tab>Manual Resume Agent</Tab>
           </TabList>
-
-          <TabPanel>
-            <SendMessage />
-          </TabPanel>
           <TabPanel>
             <AgentRunner />
+          </TabPanel>
+          <TabPanel>
+            <SendMessage />
           </TabPanel>
         </Tabs>
       </main>

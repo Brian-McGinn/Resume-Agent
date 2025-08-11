@@ -37,20 +37,14 @@ The curation process consists of the following sequential steps, each powered by
 1. **Compare:**  
    Compares the candidate's resume with the job description and previous recommendations. Identifies areas for improvement to better match the job requirements.
 
-2. **Highlight:**  
-   Extracts and prioritizes key words and phrases from the job description, ensuring these are emphasized in the revised resume.
-
-3. **Proofread:**  
+1. **Proofread:**  
    Reviews the updated resume for grammatical, contextual, and factual accuracy, correcting any errors.
 
-4. **Cross-Check:**  
+1. **Cross-Check:**  
    Validates the refined resume against the original to ensure that no critical information is lost and to minimize hallucinations or inaccuracies.
 
-5. **Format:**  
+1. **Format:**  
    Formats the final version of the resume in Markdown for improved readability and ease of conversion to other formats (e.g., PDF).
-
-- **Error Handling:**  
-  The agent includes robust exception handling and logging to facilitate debugging and ensure reliability.
 
 ## Extensibility
 

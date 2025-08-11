@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import FileUploader from './singleFileUploader';
+import FileUploader from './FileUploader';
 
 const SendMessage = () => {
   const [inputText, setInputText] = useState('');

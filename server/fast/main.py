@@ -12,7 +12,8 @@ from dotenv import load_dotenv
 import json
 import logging
 from typing import Generator
-from markdown_pdf import MarkdownPdf, Section
+from weasyprint import HTML, CSS
+from markdown import markdown
 
 # Configure logging first
 logging.basicConfig(
@@ -111,7 +112,7 @@ async def revise_resume():
 @app.get("/api/automate")
 async def automate(
     search_term: str = "software engineer",
-    location: str = "Phoenix, AZ",
+    location: str = "",
     results_wanted: int = 10,
     hours_old: int = 24,
     country_indeed: str = "USA",
@@ -188,13 +189,17 @@ async def download_curated_resume(job_url: str, asPdf: bool = False):
             raise HTTPException(status_code=404, detail="Curated resume not found for the given job_url")
         
         if asPdf:
-            # Create a MarkdownPdf object
-            pdf = MarkdownPdf()
-            # Add a section with the Markdown content
-            pdf.add_section(Section(curated_resume))
-            # Save the PDF to a file
+            css_style = """
+            body { font-size: 8pt; }
+            h1 { font-size: 12pt; }
+            h2 { font-size: 10pt; }
+            h3 { font-size: 10pt; }
+            """
+
             output_pdf_path = "curated_resume.pdf"
-            pdf.save(output_pdf_path)
+            html_content = markdown(curated_resume)
+            HTML(string=html_content).write_pdf(output_pdf_path, stylesheets=[CSS(string=css_style)])
+
             # Return the PDF file as a response
             return FileResponse(
                 output_pdf_path,

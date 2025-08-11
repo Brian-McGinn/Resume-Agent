@@ -12,7 +12,7 @@ mcp = FastMCP(
 
 class job_scraper_request(BaseModel):
     search_term: str = Field(default="software engineer", description="Job title to search for")
-    location: str = Field(default="Phoenix, AZ", description="Location of the job")
+    location: str = Field(default="", description="Location of the job")
     results_wanted: int = Field(default=10, description="Number of job results to return")
     hours_old: int = Field(default=24, description="Maximum age of job postings in hours")
     country_indeed: str = Field(default="USA", description="Country for Indeed job search")

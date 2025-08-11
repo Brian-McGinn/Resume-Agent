@@ -21,7 +21,7 @@ LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 class CurationAgent:
     def create_graph(self):
         try:
-            print("Creating Ollama LLM...")
+            print("Creating LLM...")
             # Create Ollama-based LLM (using llama3)
             # llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434", temperature=0.7, max_tokens=2048)
             llm = ChatNVIDIA(model=LLM_MODEL, temperature=0.7, max_tokens=2048)
