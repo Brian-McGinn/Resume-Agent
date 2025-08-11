@@ -55,6 +55,16 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
     docker-compose up --build --force-recreate
     ```
 
+1. Upload your resume
+
+    Select 'Choose Resume File' and upload your resume PDF from your local system.
+
+    ![Agent Runner](docs/img/ui-automated-upload.png)
+
+    Once complete, you will see an upload successful message.
+
+    ![Agent Runner](docs/img/ui-automated-upload-complete.png)
+
 1. Execute the Resume Agent:
 
     Once the containers have successfully started, you can open http://127.0.0.1:3000/. 
@@ -141,4 +151,3 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
 - **pandas**: Data manipulation and analysis for job processing.
 - **python-jobspy**: Job scraping from Indeed and other job boards.
 - **unstructured**: Document processing and text extraction.
-- **langchain-ollama**: Ollama integration for local LLM serving (optional).

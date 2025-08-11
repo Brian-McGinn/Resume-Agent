@@ -18,8 +18,6 @@ class AgentService:
     async def create_graph(self):
         try:
             print("Creating LLM...")
-            # Create Ollama-based LLM (using llama3)
-            # llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434")
             llm = ChatNVIDIA(model=LLM_MODEL)
             mcp_client = MCPUtil()
             await mcp_client.get_tools()

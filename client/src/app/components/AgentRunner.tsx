@@ -20,6 +20,7 @@ const AgentRunner: React.FC = () => {
     minimum_score: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +132,7 @@ const AgentRunner: React.FC = () => {
       <div className="w-1/3 max-w-md p-4 bg-white">
         {/* FileUploader added above the input boxes */}
         <div className="mb-6">
-          <FileUploader />
+          <FileUploader onUploadStateChange={setIsUploading} />
         </div>
         <div className="mb-4">
           <label className="block mb-1" htmlFor="search_term">Job Title</label>
@@ -207,14 +208,14 @@ const AgentRunner: React.FC = () => {
         </div>
         <button
           onClick={handleAutomat}
-          disabled={isLoading}
-          className={`px-4 py-2 rounded ${isLoading
+          disabled={isLoading || isUploading}
+          className={`px-4 py-2 rounded ${(isLoading || isUploading)
             ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
             : 'bg-gray-600 hover:bg-gray-400 text-white'
             }`}
           style={{ marginRight: '4px' }}
         >
-          {isLoading ? 'Processing...' : 'Submit to Resume Agent'}
+          {isLoading ? 'Processing...' : isUploading ? 'Uploading...' : 'Submit to Resume Agent'}
         </button>
       </div>
       {/* Right Section: 2/3 width */}

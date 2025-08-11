@@ -6,7 +6,6 @@ from services.utilities.database_util import get_job_description, update_job_cur
 from typing_extensions import TypedDict
 from langchain.schema.runnable import RunnableLambda
 from langchain.prompts import ChatPromptTemplate
-from langchain_ollama.chat_models import ChatOllama
 from prompts.prompts import (
     curate_system_prompt,
     curate_resume_step_1_compare,
@@ -14,7 +13,6 @@ from prompts.prompts import (
     curate_resume_step_3_cross_check_original,
     curate_resume_step_4_format,
 )
-# from langchain_ollama.chat_models import ChatOllama
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 LLM_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1"
 
@@ -22,8 +20,6 @@ class CurationAgent:
     def create_graph(self):
         try:
             print("Creating LLM...")
-            # Create Ollama-based LLM (using llama3)
-            # llm = ChatOllama(model="llama3.1", base_url="http://host.docker.internal:11434", temperature=0.7, max_tokens=2048)
             llm = ChatNVIDIA(model=LLM_MODEL, temperature=0.7, max_tokens=2048)
 
             # State Management

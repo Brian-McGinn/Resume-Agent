@@ -10,7 +10,6 @@
 
 1. Select 'Choose Resume File' and upload your resume PDF from your local system 
 
-
     ![Choose Resume File](img/ui-upload.png)
     > **_NOTE:_** Only PDF files are currently supported
 
