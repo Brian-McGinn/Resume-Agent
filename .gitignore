@@ -2,8 +2,9 @@ cache
 __pycache__
 server/.env
 venv/
-server/vectorstore.pkl
-server/uploads
+server/fast/vectorstore.pkl
+server/fast/uploads
+server/fast/curated_resume.pdf
 
 # dependencies
 /node_modules

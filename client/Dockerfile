@@ -8,7 +8,6 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
 RUN npm install react-tabs
 RUN npm install --save-dev @types/react-tabs
 

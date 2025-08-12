@@ -1,37 +1,38 @@
-# AI Resume Match and curation
+# AI Resume Match and Curation
 
 Tired of manually comparing your resume to job postings? The Resume Agent offers a faster, smarter way to evaluate how well your credentials align with your next opportunity. Simply upload your resume (the more detailed, the better) along with your dream job description. My AI Agent will analyze and compare them, providing a compatibility score. If there's a strong match, the tool will also help you refine your resume to highlight your strengths and stand out to recruiters.
 
 ## System Architecture
 
-![System Architecture](img/architecture.png)
+![System Architecture](docs/img/resume-agent.gif)
+
+> **_Learn more about the_** [Orchestration Agent](docs/resume-agent.md)
 
 ### Prerequisites
 
 - Docker CE or Docker Desktop (for Windows)
-- Nvidia AI API key
+- NVIDIA AI API key
 - LangSmith API key
 
 ## Quickstart Instructions
 
-1. Insatll Docker engine of your choice
+1. Install the Docker engine of your choice
 
-    For linux distibutions you can follow the appropraite steps on [Docker Engine install steps](https://docs.docker.com/engine/install/).
+    For Linux distributions, you can follow the appropriate steps on the [Docker Engine install steps](https://docs.docker.com/engine/install/).
 
-    For Windows and macOS I recommend installing [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
+    For Windows and macOS, I recommend installing [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/).
 
-    > **_NOTE:_** If you are on Windows I would recommend [installing WSL 2 with Ubuntu](https://documentation.ubuntu.com/wsl/latest/howto/install-ubuntu-wsl2/). If not you can install [Make](https://gnuwin32.sourceforge.net/packages/make.htm) and run through cmd or PowerShell.
+    > **_NOTE:_** If you are on Windows, I recommend [installing WSL 2 with Ubuntu](https://documentation.ubuntu.com/wsl/latest/howto/install-ubuntu-wsl2/).
 
+1. Get NVIDIA API key
 
-1. Get Nvidia API key
+    Follow the [NVIDIA API key generation steps](https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#generate-an-api-key).
 
-    Follow the [NVIDIA API key generation steps](https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#generate-an-api-key)
+1. Get LangSmith API key
 
-1. Get LangSmith API Key
+    Follow the [LangSmith API key generation steps](https://docs.smith.langchain.com/administration/how_to_guides/organization_management/create_account_api_key).
 
-    Follow the [LangsSmith API key generation steps](https://docs.smith.langchain.com/administration/how_to_guides/organization_management/create_account_api_key)
-
-1. Create /server/.env by copying or renaming /server/template.env
+1. Create `/server/.env` by copying or renaming `/server/template.env`:
     ```
     NVIDIA_API_KEY=<YOUR_KEY>
     LANGSMITH_API_KEY=<YOUR_KEY>
@@ -40,104 +41,116 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
     LANGSMITH_PROJECT=<PROJECT_NAME>
     ```
 
-1. Build the client and server containers
+1. Build and Run the client and server containers:
+
     ```bash
-    make build
+    docker compose up
     ```
 
-1. Run the client and server containers
+    > **_NOTE:_** If you need to rebuild an individual container you can run or rebuild all containers
+
     ```bash
-    make run
+    docker compose build <service name>
+    or
+    docker-compose up --build --force-recreate
     ```
 
-## How To Use
+1. Upload your resume
 
-### Open Resume Agent
+    Select 'Choose Resume File' and upload your resume PDF from your local system.
 
-1. Go to [Resume Agent](http://127.0.0.1:3000/)
+    ![Agent Runner](docs/img/ui-automated-upload.png)
 
-### Choose Resume File
+    Once complete, you will see an upload successful message.
 
-1. Select 'Choose Resume File' and upload your resume PDF from your local system 
+    ![Agent Runner](docs/img/ui-automated-upload-complete.png)
 
+1. Execute the Resume Agent:
 
-    ![Choose Resume File](img/ui-upload.png)
-    > **_NOTE:_** Only PDF files are currently supported
+    Once the containers have successfully started, you can open http://127.0.0.1:3000/. 
+    
+    By default, you will be taken to the `Automated Resume Agent` page. Here, you can adjust the parameters or use the defaults to run the agent flow.
 
-1. Check status message to verify success
+    ![Agent Runner](docs/img/ui-automated.png)
 
-    ![Upload success](img/ui-upload-success.png)
+    ## Parameters
 
-1. Here is an example of a failed upload
+    **Job Title**: The job title you wish to search for on job boards. You may use a broad term such as "Software Engineer" or a more specific title like "Staff Generative AI Backend Software Engineer." Please note that results may vary significantly based on the specificity of the job title.
 
-    ![Upload Failed](img/ui-upload-failed.png)
+    **Location**: The preferred location for your job search. You may specify a city, state, or use terms like `remote` or `United States` for broader or remote searches.
 
-### Compare to Resume
+    **Result Limit**: The maximum number of job postings you would like the agent to process.
 
-1. Copy job description text into the textbox
+    > **_NOTE:_** Processing may take several minutes, depending on the result limit and the complexity of the resume comparison. The Submit button will indicate when the agent is running, and the results table will be populated upon completion.
 
-    ![Copy Job Description](img/ui-compare-1.png)
+    **Hours Old**: The maximum age of job postings to include, in hours. For example, entering 24 will only retrieve jobs posted within the past day.
 
-1. Select the 'Compare To Resume' button to start the comparison
+    **Country**: The country in which you would like to search for jobs.
 
-    ![Compare To Resume](img/ui-compare-2.png)
+    **Minimum Score**: The minimum job-resume match score you are willing to accept.
 
-1. Results will be displayed in the 'Compare Result' textbox tab
+1. To stop the client and server containers, run:
 
-    ![Resume Results](img/ui-compare-result.png)
-
-### Revise Resume
-
-1. After comparison is finished you may select 'Revise Resume' to begin generating a new resume curated for the job description
-
-    ![Revise Resume](img/ui-revise-1.png)
-
-1. Once complete the revised resume will display in the 'Revised Resume' textbox tab
-
-    ![Revised Resume](img/ui-revise-result.png)
-
-
-## To Stop the client and server containers Run:
     ```bash
-    make down
+    docker compose down
     ```
 
-## Frameworks Used
 
-### Models Used
-- **google/gemma-3n-e4b-it**: Primary model for comparing job description with the resume and providing the revised resume.
-- **nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1**: Retreival model for resume vector embeddings
+> **_IMPORTANT:_**  If you would like to continue to use the manual resume agent the instructions have moved to [Manual Agent](./docs/manual-agent.md).
 
-### Frontend Frameworks
-- **React**: JavaScript library for building user interfaces
-- **Next.js**: React framework for production applications
-- **TypeScript**: Typed superset of JavaScript
+## Frameworks & Tools Used
 
-### Backend Frameworks
-- **Flask**: Python web framework for building APIs
-- **FastAPI**: Modern Python web framework for building APIs
+### Models & Embeddings
+- **nvidia/llama-3.3-nemotron-super-49b-v1**: Primary LLM for job-resume comparison, resume revision, and orchestration.
+- **nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1**: Embedding model for resume vectorization and retrieval.
+- **NVIDIA AI Endpoints**: Platform for deploying and serving AI models.
 
-### AI/ML Frameworks
-- **LangChain**: Framework for developing applications with LLMs
-- **FAISS**: Library for efficient similarity search and clustering
-- **OpenAI**: API for accessing GPT models
-- **NVIDIA AI Endpoints**: Platform for deploying AI models
+### Frontend Frameworks & Libraries
+- **React**: UI library for building interactive interfaces.
+- **Next.js**: React framework for SSR and production builds.
+- **TypeScript**: Strongly-typed JavaScript for safer code.
+- **Tailwind CSS**: Utility-first CSS framework for styling.
+- **React Tabs**: Tab component library for React.
 
-### Styling & UI Frameworks
-- **Tailwind CSS**: Utility-first CSS framework
-- **React Tabs**: Tab component library for React
+### Backend Frameworks & Libraries
+- **FastAPI**: Modern, async Python web framework for APIs.
+- **LangChain**: Framework for LLM orchestration, tool use, and agent workflows.
+- **LangGraph**: State machine framework for orchestrating multi-step LLM workflows.
+- **LangSmith**: Tracing and observability for LLM applications.
+- **PGVector**: PostgreSQL extension for vector similarity search.
+- **psycopg2-binary**: PostgreSQL database adapter for Python.
+- **docling**: Document processing utilities for PDF parsing and extraction.
+- **weasyprint**: HTML to PDF conversion for resume generation.
+- **markdown**: Markdown processing for text formatting.
 
-### Development & Build Tools
-- **Node.js**: JavaScript runtime environment
-- **npm**: Package manager for Node.js
-- **Docker**: Containerization platform
+### Orchestration & Agent Infrastructure
+- **Model Context Protocol (MCP)**: Multi-agent orchestration and tool integration.
+- **LangChain MCP Adapters**: For agent-to-agent and tool communication.
+- **Job Scraper Service**: Custom tool for scraping job boards (Indeed) using python-jobspy.
+- **Resume Curation Agent**: Automated resume enhancement pipeline.
+- **Resume Comparison Agent**: Automated job-resume scoring.
+- **Orchestrator Agent**: Multi-step workflow orchestration using LangGraph.
 
 ### Database & Storage
-- **FAISS**: Vector database for similarity search
-- **File System**: Local file storage for uploads
-- **PyPDF**: PDF parsing library
+- **PostgreSQL**: Relational database for job, resume, and embedding storage.
+- **PGVector**: Vector extension for similarity search.
+- **File System**: Local storage for uploads and intermediate files.
+
+### Development & Build Tools
+- **Node.js**: JavaScript runtime for frontend tooling.
+- **npm**: Node.js package manager.
+- **Docker**: Containerization for consistent development and deployment.
+- **Portainer**: Docker container management interface.
+- **ESLint 9**: Code linting with Next.js and TypeScript configurations.
+- **PostCSS**: CSS processing with Tailwind CSS integration.
 
 ### API & Integration
-- **REST API**: HTTP-based API architecture
-- **Server-Sent Events (SSE)**: Real-time data streaming
-- **CORS**: Cross-Origin Resource Sharing
+- **REST API**: HTTP-based API endpoints.
+- **Server-Sent Events (SSE)**: Real-time data streaming to the UI.
+- **CORS**: Cross-Origin Resource Sharing for API access.
+- **FastMCP**: HTTP-based MCP server implementation.
+
+### Other Libraries & Utilities
+- **pandas**: Data manipulation and analysis for job processing.
+- **python-jobspy**: Job scraping from Indeed and other job boards.
+- **unstructured**: Document processing and text extraction.

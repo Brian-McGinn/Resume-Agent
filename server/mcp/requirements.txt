@@ -1,0 +1,4 @@
+mcp[cli]==1.9.0
+pandas==2.3.1
+psycopg2-binary==2.9.10
+python-jobspy==1.1.82
