@@ -30,7 +30,6 @@ class ComparisonAgent:
                         content_val = job_score_json.get("content", "")
                         print(f"Job: {job.get('title')}")
                         print(f"Score: {score_val}")
-                        print(f"Explanation: {content_val}")
                         scores.append(models.job(title=job.get("title"), job_url=job.get("job_url"), score=score_val))
                         # Append a new job_comparisons entry using models.job_comparisons and job_score/job fields
                         recommendations.append(
