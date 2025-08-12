@@ -28,6 +28,10 @@ services:
     container_name: fast-server
     ports:
       - "127.0.0.1:3003:3003"
+    environment:
+      POSTGRES_USER: vector_admin
+      POSTGRES_PASSWORD: Resume_Pass
+      POSTGRES_DB: resume_agent
     volumes:
       - ./server/fast:/tmp/demo
     restart: "on-failure:5"
@@ -35,6 +39,10 @@ services:
     image:  mcp-server:dev
     build: ./server/mcp
     container_name: mcp-server
+    environment:
+      POSTGRES_USER: vector_admin
+      POSTGRES_PASSWORD: Resume_Pass
+      POSTGRES_DB: resume_agent
     ports:
       - "127.0.0.1:3004:3004"
     restart: "on-failure:5"

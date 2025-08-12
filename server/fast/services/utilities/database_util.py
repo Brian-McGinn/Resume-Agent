@@ -1,5 +1,6 @@
 import psycopg2
 from services import models
+import os
 
 def get_postgres_connection():
     """
@@ -7,9 +8,9 @@ def get_postgres_connection():
     """
     try:
         conn = psycopg2.connect(
-            dbname="resume_agent",
-            user="vector_admin",
-            password="Resume_Pass",  # Change as appropriate
+            dbname=os.environ.get("POSTGRES_DB", "resume_agent"),
+            user=os.environ.get("POSTGRES_USER", "vector_admin"),
+            password=os.environ.get("POSTGRES_PASSWORD", "Resume_Pass"), 
             host="pgvector-db",
             port=5432
         )

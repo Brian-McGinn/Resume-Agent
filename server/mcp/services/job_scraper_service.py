@@ -2,6 +2,7 @@ from jobspy import scrape_jobs
 import pandas as pd
 import io
 import psycopg2
+import os
 
 def get_jobs(search_term: str = "software engineer", location: str = "", results_wanted: int = 10, hours_old: int = 24, country_indeed: str = "USA"):
     jobs = scrape_jobs(
@@ -41,9 +42,9 @@ def save_jobs_to_postgres(job_df):
     conn = None
     try:
         conn = psycopg2.connect(
-            dbname="resume_agent",
-            user="vector_admin",
-            password="Resume_Pass",  # Change as appropriate
+            dbname=os.environ.get("POSTGRES_DB", "resume_agent"),
+            user=os.environ.get("POSTGRES_USER", "vector_admin"),
+            password=os.environ.get("POSTGRES_PASSWORD", "Resume_Pass"), 
             host="pgvector-db",
             port=5432
         )
