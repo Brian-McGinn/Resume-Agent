@@ -2,6 +2,12 @@
 
 ## How To Use
 
+### Run Resume Agent
+
+```bash
+docker compose up
+```
+
 ### Open Resume Agent
 
 1. Go to [Resume Agent](http://127.0.0.1:3000/)

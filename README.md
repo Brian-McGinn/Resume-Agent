@@ -95,6 +95,9 @@ Tired of manually comparing your resume to job postings? The Resume Agent offers
     docker compose down
     ```
 
+
+> **_IMPORTANT:_**  If you would like to continue to use the manual resume agent the instructions have moved to [Manual Agent](./docs/manual-agent.md).
+
 ## Frameworks & Tools Used
 
 ### Models & Embeddings
