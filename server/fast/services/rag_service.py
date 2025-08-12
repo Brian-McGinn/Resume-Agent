@@ -8,8 +8,11 @@ from sqlalchemy import create_engine, text
 import os
 import json
 
+POSTGRES_DB=os.environ.get("POSTGRES_DB", "resume_agent")
+POSTGRES_USER=os.environ.get("POSTGRES_USER", "vector_admin")
+POSTGRES_PASSWORD=os.environ.get("POSTGRES_PASSWORD", "Resume_Pass")
 EMBEDDING_MODEL = "nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1"
-CONNECTION_STRING = "postgresql://vector_admin:Resume_Pass@pgvector-db:5432/resume_agent"
+CONNECTION_STRING = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@pgvector-db:5432/{POSTGRES_DB}"
 COLLECTION_NAME = "resume_embeddings"
 document_embedder = NVIDIAEmbeddings(model=EMBEDDING_MODEL, truncate="NONE") # Can use other supported models
 
